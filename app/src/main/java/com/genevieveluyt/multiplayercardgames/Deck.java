@@ -8,6 +8,11 @@ import java.util.LinkedList;
  */
 public class Deck extends CardCollection {
 
+	// Deck types
+	public static final int STANDARD = 0;   // standard 52-card collection
+	public static final int EMPTY = 1;      // can be used as a playing or discard pile
+	public static final int JOKER = 2;      // standard 52-card collection with 2 jokers
+
 	LinkedList<Card> deck = (LinkedList<Card>) collection;
 
 	Deck(int type) {

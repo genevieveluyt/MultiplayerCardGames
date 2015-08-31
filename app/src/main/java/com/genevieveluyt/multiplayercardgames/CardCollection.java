@@ -1,15 +1,12 @@
 package com.genevieveluyt.multiplayercardgames;
 
+import java.util.LinkedList;
 import java.util.List;
 
 /**
  * Created by Genevieve on 30/08/2015.
  */
 public abstract class CardCollection {
-	// Deck types
-	public static final int STANDARD = 0;   // standard 52-card collection
-	public static final int EMPTY = 1;      // can be used as a playing or discard pile
-	public static final int JOKER = 2;      // standard 52-card collection with 2 jokers
 
 	protected List<Card> collection;
 
@@ -32,5 +29,15 @@ public abstract class CardCollection {
 			str.append("\n");
 		}
 		return str.toString();
+	}
+
+	LinkedList<Byte> getData() {
+		LinkedList<Byte> data = new LinkedList<Byte>();
+		data.add((Byte)(byte)collection.size());
+		for (Card c : collection) {
+			data.add((Byte)(byte) c.getSuit()); // REVIEW does this have to be Byte.valueOf( (byte) c.getSuit() );
+			data.add((Byte)(byte) c.getRank());
+		}
+		return data;
 	}
 }

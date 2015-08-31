@@ -39,6 +39,7 @@ public class Card {
 		return rank;
 	}
 
+	// Compares cards according to rank
 	public int compareTo(Card card2) {
 		return ((Integer) rank).compareTo((Integer) card2.getRank());
 	}

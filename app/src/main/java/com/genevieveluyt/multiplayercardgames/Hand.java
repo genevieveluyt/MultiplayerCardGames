@@ -1,6 +1,7 @@
 package com.genevieveluyt.multiplayercardgames;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 /**
  * Created by Genevieve on 30/08/2015.
@@ -13,8 +14,20 @@ public class Hand extends CardCollection {
 		hand = new ArrayList<Card>();
 	}
 
+	public Hand(Deck deck, int n) {
+		hand = new ArrayList<Card>();
+		draw(deck, n);
+	}
+
 	public void draw(Deck deck) {
 		hand.add(deck.draw());
+	}
+
+	// draw n cards from deck
+	public void draw(Deck deck, int n) {
+		for (int i = 0; i < n; i++) {
+			hand.add(deck.draw());
+		}
 	}
 
 	// return false if card not in hand
