@@ -1,5 +1,6 @@
 package com.genevieveluyt.multiplayercardgames;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -8,7 +9,17 @@ import java.util.List;
  */
 public abstract class CardCollection {
 
-	protected List<Card> collection;
+	protected ArrayList<Card> collection;
+
+    public CardCollection() {
+        collection = new ArrayList<Card>();
+    }
+
+    CardCollection(String data) {
+        for (int i = 0; i < data.length(); i += 3) {
+            collection.add(new Card(Integer.parseInt(data.substring(i, i+3))));
+        }
+    }
 
 	public boolean contains(Card card) {
 		return collection.contains(card);
@@ -22,22 +33,15 @@ public abstract class CardCollection {
 		return collection.isEmpty();
 	}
 
-	public String toString() {
-		StringBuilder str = new StringBuilder();
-		for (Card c : collection) {
-			str.append(c.toString());
-			str.append("\n");
-		}
-		return str.toString();
+	String getData() {
+		StringBuilder data = new StringBuilder();
+        for (Card c : collection) {
+            data.append(c.getId());
+        }
+		return data.toString();
 	}
 
-	LinkedList<Byte> getData() {
-		LinkedList<Byte> data = new LinkedList<Byte>();
-		data.add((Byte)(byte)collection.size());
-		for (Card c : collection) {
-			data.add((Byte)(byte) c.getSuit()); // REVIEW does this have to be Byte.valueOf( (byte) c.getSuit() );
-			data.add((Byte)(byte) c.getRank());
-		}
-		return data;
-	}
+	public Card add(Card card) { collection.add(card); return card; }
+
+	public Card remove(Card card) { collection.remove(card); return card; }
 }
