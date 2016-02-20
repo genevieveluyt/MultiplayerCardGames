@@ -201,6 +201,7 @@ public class Card {
 
 	@Override
 	public boolean equals(Object obj) {
-		return this.rank == ((Card) obj).getRank() && this.suit == ((Card) obj).getSuit();
+		//return this.rank == ((Card) obj).getRank() && this.suit == ((Card) obj).getSuit();
+		return getId() == ((Card) obj).getId();
 	}
 }

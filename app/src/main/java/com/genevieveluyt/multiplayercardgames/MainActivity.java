@@ -20,11 +20,9 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -33,18 +31,13 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.games.Games;
 import com.google.android.gms.games.GamesStatusCodes;
-import com.google.android.gms.games.multiplayer.Invitation;
 import com.google.android.gms.games.multiplayer.Multiplayer;
-import com.google.android.gms.games.multiplayer.OnInvitationReceivedListener;
-import com.google.android.gms.games.multiplayer.realtime.RoomConfig;
-import com.google.android.gms.games.multiplayer.turnbased.OnTurnBasedMatchUpdateReceivedListener;
 import com.google.android.gms.games.multiplayer.turnbased.TurnBasedMatch;
 import com.google.android.gms.games.multiplayer.turnbased.TurnBasedMatchConfig;
 import com.google.android.gms.games.multiplayer.turnbased.TurnBasedMultiplayer;
 import com.google.android.gms.plus.Plus;
 
 import java.util.ArrayList;
-import java.util.concurrent.TimeUnit;
 
 //import com.google.android.gms.games.Games;
 //import com.google.example.games.basegameutils.BaseGameUtils;
@@ -69,7 +62,6 @@ import java.util.concurrent.TimeUnit;
  */
 public class MainActivity extends Activity
 		implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener,
-		OnInvitationReceivedListener, OnTurnBasedMatchUpdateReceivedListener,
 		View.OnClickListener {
 
 	public static final String TAG = "CardGameActivity";
@@ -91,10 +83,6 @@ public class MainActivity extends Activity
 
 	// Current turn-based match
 	private TurnBasedMatch mTurnBasedMatch;
-
-	// Local convenience pointers
-	public TextView mDataView;
-	public TextView mTurnTextView;
 
 	private AlertDialog mAlertDialog;
 
@@ -134,17 +122,14 @@ public class MainActivity extends Activity
 		findViewById(R.id.sign_out_button).setOnClickListener(this);
 		findViewById(R.id.sign_in_button).setOnClickListener(this);
 
-		//mDataView = ((TextView) findViewById(R.id.data_view));
-		//mTurnTextView = ((TextView) findViewById(R.id.turn_counter_view));
-
-		mTurnData = new CrazyEightsGameBoard("playerId", new ArrayList<String>(){ {add("playerId");} }, null, this);
+		//mTurnData = new CrazyEightsGameBoard("playerId", new ArrayList<String>(){ {add("playerId");} }, null, this);
 	}
 
 	@Override
 	protected void onStart() {
 		super.onStart();
 		Log.d(TAG, "onStart(): Connecting to Google APIs");
-		//mGoogleApiClient.connect();   // TODO Re-enable this after testing!
+		mGoogleApiClient.connect();
 	}
 
 	@Override
@@ -155,6 +140,8 @@ public class MainActivity extends Activity
 			mGoogleApiClient.disconnect();
 		}
 	}
+
+	/********************* implement GoogleApiClient.ConnectionCallbacks **************************/
 
 	@Override
 	public void onConnected(Bundle connectionHint) {
@@ -175,19 +162,6 @@ public class MainActivity extends Activity
 		}
 
 		setViewVisibility();
-
-		// As a demonstration, we are registering this activity as a handler for
-		// invitation and match events.
-
-		// This is *NOT* required; if you do not register a handler for
-		// invitation events, you will get standard notifications instead.
-		// Standard notifications may be preferable behavior in many cases.
-		Games.Invitations.registerInvitationListener(mGoogleApiClient, this);
-
-		// Likewise, we are registering the optional MatchUpdateListener, which
-		// will replace notifications you would get otherwise. You do *NOT* have
-		// to register a MatchUpdateListener.
-		Games.TurnBasedMultiplayer.registerMatchUpdateListener(mGoogleApiClient, this);
 	}
 
 	@Override
@@ -196,6 +170,8 @@ public class MainActivity extends Activity
 		mGoogleApiClient.connect();
 		setViewVisibility();
 	}
+
+	/***************** implement GoogleApiClient.OnConnectionFailedListener ***********************/
 
 	@Override
 	public void onConnectionFailed(ConnectionResult connectionResult) {
@@ -219,6 +195,8 @@ public class MainActivity extends Activity
 		setViewVisibility();
 	}
 
+	/******************************** Home Menu Options *******************************************/
+
 	// Displays your inbox. You will get back onActivityResult where
 	// you will need to figure out what you clicked on.
 	public void onCheckGamesClicked(View view) {
@@ -230,32 +208,11 @@ public class MainActivity extends Activity
 	// and figure out what to do.
 	public void onStartMatchClicked(View view) {
 		Intent intent = Games.TurnBasedMultiplayer.getSelectOpponentsIntent(mGoogleApiClient,
-				1, 7, true);
+				1, 7, false);
 		startActivityForResult(intent, RC_SELECT_PLAYERS);
 	}
 
-	// Create a one-on-one automatch game.
-	public void onQuickMatchClicked(View view) {
-
-		Bundle autoMatchCriteria = RoomConfig.createAutoMatchCriteria(
-				1, 1, 0);
-
-		TurnBasedMatchConfig tbmc = TurnBasedMatchConfig.builder()
-				.setAutoMatchCriteria(autoMatchCriteria).build();
-
-		showSpinner();
-
-		// Start the match
-		ResultCallback<TurnBasedMultiplayer.InitiateMatchResult> cb = new ResultCallback<TurnBasedMultiplayer.InitiateMatchResult>() {
-			@Override
-			public void onResult(TurnBasedMultiplayer.InitiateMatchResult result) {
-				processResult(result);
-			}
-		};
-		Games.TurnBasedMultiplayer.createMatch(mGoogleApiClient, tbmc).setResultCallback(cb);
-	}
-
-	// In-game controls
+	/********************************** In-game Menu **********************************************/
 
 	// Cancel the game. Should possibly wait until the game is canceled before
 	// giving up on the view.
@@ -308,12 +265,17 @@ public class MainActivity extends Activity
 	// Upload your new gamestate, then take a turn, and pass it on to the next
 	// player.
 	public void onDoneClicked(View view) {
+		// TODO move to respective game board
+		// if player's hand or draw deck is empty, finish game
+		CrazyEightsGameBoard game = (CrazyEightsGameBoard) mTurnData;
+		if (game.currHand.isEmpty() || game.drawDeck.isEmpty()){
+			onFinishClicked(view);
+			return;
+		}
+
 		showSpinner();
 
 		String nextParticipantId = getNextParticipantId();
-		// Create the next turn
-		//mTurnData.turnCounter += 1;
-		//mTurnData.data = mDataView.getText().toString();
 
 		showSpinner();
 
@@ -328,6 +290,8 @@ public class MainActivity extends Activity
 
 		mTurnData = null;
 	}
+
+	/*********************************************************************************************/
 
 	// Sign-in, Sign out behavior
 
@@ -359,14 +323,6 @@ public class MainActivity extends Activity
 			findViewById(R.id.matchup_layout).setVisibility(View.VISIBLE);
 			findViewById(R.id.gameplay_layout).setVisibility(View.GONE);
 		}
-	}
-
-	// Switch to gameplay view.
-	public void setGameplayUI() {
-		isDoingTurn = true;
-		setViewVisibility();
-		//mDataView.setText(mTurnData.data);
-		//mTurnTextView.setText("Turn " + mTurnData.turnCounter);
 	}
 
 	// Helpful dialogs
@@ -467,33 +423,11 @@ public class MainActivity extends Activity
 
 			// get the invitee list
 			final ArrayList<String> invitees = data
-					.getStringArrayListExtra("players");
-			/*
-			Was originally:
-			final ArrayList<String> invitees = data
 					.getStringArrayListExtra(Games.EXTRA_PLAYER_IDS);
-			But Games.EXTRA_PLAYER_IDS could not be resolved????
-			It is equal to the string "players" in the source code
-			*/
 
-			// get automatch criteria
-			Bundle autoMatchCriteria;
-
-			int minAutoMatchPlayers = data.getIntExtra(
-					Multiplayer.EXTRA_MIN_AUTOMATCH_PLAYERS, 0);
-			int maxAutoMatchPlayers = data.getIntExtra(
-					Multiplayer.EXTRA_MAX_AUTOMATCH_PLAYERS, 0);
-
-			if (minAutoMatchPlayers > 0) {
-				autoMatchCriteria = RoomConfig.createAutoMatchCriteria(
-						minAutoMatchPlayers, maxAutoMatchPlayers, 0);
-			} else {
-				autoMatchCriteria = null;
-			}
 
 			TurnBasedMatchConfig tbmc = TurnBasedMatchConfig.builder()
-					.addInvitedPlayers(invitees)
-					.setAutoMatchCriteria(autoMatchCriteria).build();
+					.addInvitedPlayers(invitees).build();
 
 			// Start the match
 			Games.TurnBasedMultiplayer.createMatch(mGoogleApiClient, tbmc).setResultCallback(
@@ -514,8 +448,6 @@ public class MainActivity extends Activity
 	// callback to OnTurnBasedMatchUpdated(), which will show the game
 	// UI.
 	public void startMatch(TurnBasedMatch match) {
-		// Some basic turn data
-		//mTurnData.data = "First turn";
 
 		mMatch = match;
 
@@ -565,7 +497,7 @@ public class MainActivity extends Activity
 
 		ArrayList<String> participantIds = mMatch.getParticipantIds();
 
-		int desiredIndex = -1;
+		/*int desiredIndex = -1;
 
 		for (int i = 0; i < participantIds.size(); i++) {
 			if (participantIds.get(i).equals(myParticipantId)) {
@@ -577,14 +509,9 @@ public class MainActivity extends Activity
 			return participantIds.get(desiredIndex);
 		}
 
-		if (mMatch.getAvailableAutoMatchSlots() <= 0) {
-			// You've run out of automatch slots, so we start over.
-			return participantIds.get(0);
-		} else {
-			// You have not yet fully automatched, so null will find a new
-			// person to play against.
-			return null;
-		}
+		return participantIds.get(0); */
+
+		return participantIds.get((participantIds.indexOf(myParticipantId) + 1) % participantIds.size());
 	}
 
 	// This is the main function that gets called when players choose a match
@@ -625,7 +552,8 @@ public class MainActivity extends Activity
 			case TurnBasedMatch.MATCH_TURN_STATUS_MY_TURN:
 				String participantId = mMatch.getParticipantId(Games.Players.getCurrentPlayerId(mGoogleApiClient));
 				mTurnData = new CrazyEightsGameBoard(participantId, mMatch.getParticipantIds(), mMatch.getData(), this);
-				setGameplayUI();
+				isDoingTurn = true;
+				setViewVisibility();
 				return;
 			case TurnBasedMatch.MATCH_TURN_STATUS_THEIR_TURN:
 				// Should return results.
@@ -703,32 +631,6 @@ public class MainActivity extends Activity
 		setViewVisibility();
 	}
 
-	// Handle notification events.
-	@Override
-	public void onInvitationReceived(Invitation invitation) {
-		Toast.makeText(
-				this,
-				"An invitation has arrived from "
-						+ invitation.getInviter().getDisplayName(), TOAST_DELAY)
-				.show();
-	}
-
-	@Override
-	public void onInvitationRemoved(String invitationId) {
-		Toast.makeText(this, "An invitation was removed.", TOAST_DELAY).show();
-	}
-
-	@Override
-	public void onTurnBasedMatchReceived(TurnBasedMatch match) {
-		Toast.makeText(this, "A match was updated.", TOAST_DELAY).show();
-	}
-
-	@Override
-	public void onTurnBasedMatchRemoved(String matchId) {
-		Toast.makeText(this, "A match was removed.", TOAST_DELAY).show();
-
-	}
-
 	public void showErrorMessage(TurnBasedMatch match, int statusCode,
 	                             int stringId) {
 
@@ -787,17 +689,12 @@ public class MainActivity extends Activity
 		return false;
 	}
 
+	/*************************** implement View.OnClickListener ***********************************/
+
 	@Override
 	public void onClick(View v) {
 		switch (v.getId()) {
 			case R.id.sign_in_button:
-				// Check to see the developer who's running this sample code read the instructions :-)
-				// NOTE: this check is here only because this is a sample! Don't include this
-				// check in your actual production app.
-				if (!BaseGameUtils.verifySampleSetup(this, R.string.app_id)) {
-					Log.w(TAG, "*** Warning: setup problems detected. Sign in may not work!");
-				}
-
 				mSignInClicked = true;
 				mTurnBasedMatch = null;
 				findViewById(R.id.sign_in_button).setVisibility(View.GONE);

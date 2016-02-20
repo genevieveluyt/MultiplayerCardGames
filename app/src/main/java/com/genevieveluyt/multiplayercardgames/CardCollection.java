@@ -1,24 +1,16 @@
 package com.genevieveluyt.multiplayercardgames;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.List;
 
 /**
  * Created by Genevieve on 30/08/2015.
  */
 public abstract class CardCollection {
 
-	protected ArrayList<Card> collection;
+	protected LinkedList<Card> collection;
 
     public CardCollection() {
-        collection = new ArrayList<Card>();
-    }
-
-    CardCollection(String data) {
-        for (int i = 0; i < data.length(); i += 3) {
-            collection.add(new Card(Integer.parseInt(data.substring(i, i+3))));
-        }
+        collection = new LinkedList<>();
     }
 
 	public boolean contains(Card card) {
@@ -33,6 +25,14 @@ public abstract class CardCollection {
 		return collection.isEmpty();
 	}
 
+	void loadData (String data) {
+		for (int i = 0; i < data.length(); i += 3) {
+			collection.addLast(new Card(Integer.parseInt(data.substring(i, i + 3))));
+		}
+		// TODO delete
+		if (collection.size() == 1) System.out.println("playdeck: " + collection.getFirst());
+	}
+
 	String getData() {
 		StringBuilder data = new StringBuilder();
         for (Card c : collection) {
@@ -41,7 +41,16 @@ public abstract class CardCollection {
 		return data.toString();
 	}
 
-	public Card add(Card card) { collection.add(card); return card; }
+	public Card add(Card card) { collection.addFirst(card); return card; }
 
 	public Card remove(Card card) { collection.remove(card); return card; }
+
+	public String toString() {
+		StringBuilder str = new StringBuilder();
+		for (Card card : collection)
+			str.append(card + ", ");
+		str.setLength(str.length()-2);
+
+		return str.toString();
+	}
 }

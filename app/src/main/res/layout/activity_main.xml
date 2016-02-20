@@ -3,6 +3,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" >
 
+	<!-- login layout -->
     <LinearLayout
         android:id="@+id/login_layout"
         android:layout_width="wrap_content"
@@ -15,16 +16,9 @@
         android:paddingLeft="@dimen/activity_horizontal_margin"
         android:paddingRight="@dimen/activity_horizontal_margin"
         android:paddingTop="@dimen/activity_vertical_margin"
-        android:visibility="gone" >
+        android:visibility="visible" >
 
         <!-- sign-in button -->
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="@dimen/margin_large"
-            android:text="@string/welcome_to_our_skeleton_app_"
-            android:textAppearance="@style/GuessWordText" />
 
         <com.google.android.gms.common.SignInButton
             android:id="@+id/sign_in_button"
@@ -33,6 +27,7 @@
         </com.google.android.gms.common.SignInButton>
     </LinearLayout>
 
+	<!-- gampeplay layout -->
     <LinearLayout
         android:id="@+id/gameplay_layout"
         android:layout_width="match_parent"
@@ -42,7 +37,7 @@
         android:paddingLeft="@dimen/activity_horizontal_margin"
         android:paddingRight="@dimen/activity_horizontal_margin"
         android:paddingTop="@dimen/activity_vertical_margin"
-        android:visibility="visible"
+        android:visibility="gone"
         tools:context=".MainActivity"
         android:background="@drawable/table_background" >
 
@@ -52,13 +47,6 @@
 		    android:layout_height="0dp"
 		    android:gravity="center_horizontal"
 		    android:layout_weight="2">
-
-		    <LinearLayout
-			    android:id="@+id/opponent_layout"
-			    android:layout_width="wrap_content"
-			    android:layout_height="match_parent"
-			    android:orientation="horizontal"
-			    />
 
 	    </HorizontalScrollView>
 
@@ -75,9 +63,11 @@
 	            android:layout_width="wrap_content"
 	            android:layout_height="80dp"
 	            android:layout_marginRight="10dp"
+	            android:layout_marginEnd="10dp"
 	            android:adjustViewBounds="true"
 	            android:scaleType="fitCenter"
                 android:background="@android:color/transparent"
+	            android:visibility="visible"
                 android:clickable="true"
                 android:src="@drawable/card_back"
                 />
@@ -89,8 +79,23 @@
 		        android:adjustViewBounds="true"
 		        android:scaleType="fitCenter"
 		        android:background="@android:color/transparent"
+		        android:visibility="invisible"
 		        android:clickable="true"
 		        />
+
+	        <ImageButton
+		        android:id="@+id/doneButton"
+		        android:onClick="onDoneClicked"
+		        android:layout_width="30dp"
+		        android:layout_height="wrap_content"
+		        android:layout_marginLeft="20dp"
+		        android:layout_marginStart="20dp"
+		        android:layout_marginRight="10dp"
+		        android:layout_marginEnd="10dp"
+		        android:adjustViewBounds="true"
+		        android:scaleType="fitCenter"
+		        android:background="@android:color/transparent"
+		        android:src="@drawable/btn_end_turn"/>
 
         </LinearLayout>
 
@@ -114,7 +119,7 @@
 
 	    </HorizontalScrollView>
 
-
+		<!-- menu -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -123,17 +128,6 @@
             android:orientation="horizontal"
             android:visibility="gone"
             android:id="@+id/linearLayout">
-
-            <Button
-                android:id="@+id/doneButton"
-                android:layout_width="170dp"
-                android:layout_height="wrap_content"
-                android:onClick="onDoneClicked"
-                android:padding="@dimen/activity_vertical_margin"
-                android:text="@string/done"
-                android:textAppearance="@style/HelpText.Heading"
-                tools:ignore="ButtonStyle"
-                android:layout_gravity="center_vertical"/>
 
             <Button
                 android:id="@+id/cancelButton"
@@ -164,6 +158,7 @@
         </LinearLayout>
     </LinearLayout>
 
+	<!-- matchup layout -->
     <RelativeLayout
         android:id="@+id/matchup_layout"
         android:layout_width="wrap_content"
@@ -213,16 +208,10 @@
                 android:layout_height="wrap_content"
                 android:onClick="onCheckGamesClicked"
                 android:text="@string/check_games" />
-
-            <Button
-                android:id="@+id/quickMatchButon"
-                android:layout_width="200dp"
-                android:layout_height="wrap_content"
-                android:onClick="onQuickMatchClicked"
-                android:text="@string/quick_match" />
         </LinearLayout>
     </RelativeLayout>
 
+	<!-- progress layout -->
     <RelativeLayout
         android:id="@+id/progressLayout"
         android:layout_width="match_parent"

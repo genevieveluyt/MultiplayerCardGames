@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout android:id="@+id/opponentLayout"
+                xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+	<ImageView
+		android:id="@+id/img_playerTemplate"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:background="@android:color/transparent"
+		android:src="@drawable/opponent"/>
+
+	<TextView
+		android:id="@+id/txt_numCards"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_centerInParent="true"
+		android:text="5"
+		android:textAppearance="?android:attr/textAppearanceLarge"/>
+
+	<TextView
+		android:id="@+id/txt_playerName"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_alignBottom="@id/img_playerTemplate"
+		android:layout_centerHorizontal="true"
+		android:layout_marginBottom="22dp"
+		android:text="Chris P. Bacon"
+		android:textAppearance="?android:attr/textAppearanceMedium"/>
+</RelativeLayout>

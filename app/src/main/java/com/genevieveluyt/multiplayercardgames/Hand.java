@@ -1,24 +1,24 @@
 package com.genevieveluyt.multiplayercardgames;
 
 import android.graphics.Color;
-import android.view.Gravity;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.HorizontalScrollView;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 
 /**
  * Created by Genevieve on 30/08/2015.
  */
 public class Hand extends CardCollection {
 
-	private ArrayList<Card> hand = collection;  // alias
+	private LinkedList<Card> hand = collection;  // alias
 	private ArrayList<Card> selected;
 	private final int selectedRaiseAmt = 60;    // How much a selected card will raise above the others, in pixels
 	private boolean multiSelect = false;        // Can be set by user
+	private boolean selectEnabled = true;
 
 	// XML layouts
 	private LinearLayout handLayout;
@@ -50,11 +50,28 @@ public class Hand extends CardCollection {
 		draw(deck, n);
 	}
 
+	// Make a hand starting with n cards drawn from deck without adding them to the UI
+	public Hand(Deck deck, int n) {
+		super();
+		selected = new ArrayList<>();
+		drawVirtual(deck, n);
+	}
+
 	// Make a hand by loading data
 	Hand(String data, LinearLayout handLayout) {
-		super(data);
+		super();
 		this.handLayout = handLayout;
 		this.handScrollLayout = (HorizontalScrollView) handLayout.getParent();
+		for (int i = 0; i < data.length(); i += 3) {
+			add(new Card(Integer.parseInt(data.substring(i, i+3))));
+		}
+		selected = new ArrayList<>();
+	}
+
+	// Make a hand by loading data but without adding the cards to the UI
+	Hand(String data) {
+		super();
+		super.loadData(data);
 		selected = new ArrayList<>();
 	}
 
@@ -69,13 +86,22 @@ public class Hand extends CardCollection {
 		}
 	}
 
-	// return false if card not in hand
-	public boolean play(Card card, Deck deck) {
-		if (!hand.contains(card))
-			return false;
-		deck.play(card);
+	public void drawVirtual(Deck deck) {
+		addVirtual(deck.draw());
+	}
+
+	public void drawVirtual (Deck deck, int n) {
+		for (int i = 0; i < n; i++) {
+			drawVirtual(deck);
+		}
+	}
+
+	public Card play(Card card, Deck deck) {
+		deck.add(card);
 		remove(card);
-		return true;
+
+		if (MainActivity.DEBUG) System.out.println("Hand|play(Card, Deck): Played " + card.toString());
+		return card;
 	}
 
 	public void playSelected(Deck deck) {
@@ -83,25 +109,21 @@ public class Hand extends CardCollection {
 			play(c, deck);
 	}
 
-	public boolean giveTo(Card card, Hand oppHand) {
-		if (!hand.contains(equals(card)))
-			return false;
-		oppHand.add(card);
+	public Card giveTo(Card card, Hand oppHand) {
+		oppHand.addVirtual(card);
 		remove(card);
-		return true;
+		return card;
 	}
 
-	public boolean takeFrom(Card card, Hand oppHand) {
-		if (!oppHand.contains(card))
-			return false;
+	public Card takeFrom(Card card, Hand oppHand) {
 		oppHand.remove(card);
 		add(card);
-		return true;
+		return card;
 	}
 
 	@Override
 	public Card add(Card card) {
-		hand.add(card);
+		addVirtual(card);
 
 		ImageButton cardView = new ImageButton(handLayout.getContext());
 		cardView.setAdjustViewBounds(true);
@@ -121,8 +143,14 @@ public class Hand extends CardCollection {
 		// right padding in the xml of handLayout (R.id.hand_layout)
 		handScrollLayout.smoothScrollBy(handScrollLayout.getMaxScrollAmount(), 0);
 
-		if (MainActivity.DEBUG) System.out.println("Drew " + card.toString());
+		if (MainActivity.DEBUG) System.out.println("Hand|add(Card): Drew " + card.toString());
 
+		return card;
+	}
+
+	// Add card to hand without adding it to the UI
+	public Card addVirtual (Card card) {
+		hand.addLast(card);
 		return card;
 	}
 
@@ -134,8 +162,12 @@ public class Hand extends CardCollection {
 			deselect(card);
 		}
 		handLayout.removeView(handLayout.findViewById(card.getId()));
+		return card;
+	}
 
-		if (MainActivity.DEBUG) System.out.println("Played " + card.toString());
+	// Remove card from hand without removing it from the UI
+	public Card removeVirtual (Card card) {
+		hand.remove(card);
 		return card;
 	}
 
@@ -144,36 +176,50 @@ public class Hand extends CardCollection {
 	 * If multiSelect is disabled, selecting another card deselects any previously selected card
 	 */
 	public void select(Card card) {
-		if (!selected.contains(card)) {
-			if (!selected.isEmpty() && !multiSelect)
-				deselect(selected.get(0));
-			selected.add(card);
-			if (MainActivity.DEBUG) System.out.println("Selected " + card.toString());
-			handLayout.findViewById(card.getId()).setPadding(0, 0, 0, selectedRaiseAmt);
-		} else
+		if (selected.contains(card))
 			deselect(card);
+		else {
+			if (!selected.isEmpty() && !multiSelect)
+				deselectAll();
+			selected.add(card);
+			handLayout.findViewById(card.getId()).setPadding(0, 0, 0, selectedRaiseAmt);
+
+			if (MainActivity.DEBUG) System.out.println("Hand|select(Card): Selected " + card.toString());
+		}
 	}
 
 	public void deselect(Card card) {
 		selected.remove(card);
-		if (MainActivity.DEBUG) System.out.println("Deselected " + card.toString());
 		View cardView = handLayout.findViewById(card.getId());
 		cardView.setPadding(0, selectedRaiseAmt, 0, 0);
+
+		if (MainActivity.DEBUG) System.out.println("Hand:deselect(Card): Deselected " + card.toString());
+	}
+
+	public void deselectAll() {
+		for (Card card : selected)
+			deselect(card);
 	}
 
 	public ArrayList<Card> getSelected() {
 		return selected;
 	}
 
-	public void allowMultiSelect(boolean bool) {
-		multiSelect = bool;
-		// if switching from multi select to single select, clear selected cards
-		if (!multiSelect && selected.size() > 1) {
-			selected.clear();
+	public void enableMultiSelect() { multiSelect = true; }
+
+	public void disableMultiSelect() {
+		if (selected.size() > 1) {
+			Card firstSelected = selected.get(0);
+			deselectAll();
+			select(firstSelected);
 		}
 	}
 
-	public boolean multiSelectAllowed() {
-		return multiSelect;
-	}
+	public boolean multiSelectEnabled() { return multiSelect; }
+
+	public void enableSelect() { selectEnabled = true; }
+
+	public void disableSelect() { selectEnabled = false; deselectAll(); }
+
+	public boolean isSelectEnabled() { return selectEnabled; }
 }

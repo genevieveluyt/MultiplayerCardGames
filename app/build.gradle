@@ -1,15 +1,28 @@
 apply plugin: 'com.android.application'
 
 android {
+    signingConfigs {
+        release {
+            keyAlias 'androidkey'
+            keyPassword 'geheim'
+            storeFile file('C:/Users/Genevieve/.android/android')
+            storePassword 'geheim'
+        }
+        debug {
+            keyAlias 'androiddebugkey'
+            keyPassword 'android'
+            storeFile file('C:/Users/Genevieve/.android/debug.keystore')
+            storePassword 'android'
+        }
+    }
     compileSdkVersion 23
     buildToolsVersion "22.0.1"
-
     defaultConfig {
         applicationId "com.genevieveluyt.multiplayercardgames"
         minSdkVersion 16
         targetSdkVersion 23
-        versionCode 1
-        versionName "1.0"
+        versionCode 6
+        versionName "1.0.2"
     }
     buildTypes {
         release {
@@ -20,7 +33,7 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile 'com.android.support:appcompat-v7:23.0.0'
-    compile 'com.google.android.gms:play-services:4.2.42'
+    compile fileTree(include: ['*.jar'], dir: 'libs')
+    compile 'com.android.support:appcompat-v7:23.1.1'
+    compile 'com.google.android.gms:play-services:8.4.0'
 }

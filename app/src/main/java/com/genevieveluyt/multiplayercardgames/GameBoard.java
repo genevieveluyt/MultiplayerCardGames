@@ -1,6 +1,5 @@
 package com.genevieveluyt.multiplayercardgames;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
@@ -8,8 +7,11 @@ import java.util.HashMap;
  */
 public abstract class GameBoard {
 
+	// Game types
+	public static final int CRAZY_EIGHTS = 0;
+
 	// Separates deck and hand segments in data
-    protected final char separator = '\n';
+    protected static final char separator = '\n';
 
 	HashMap<String, Hand> hands;     // Player ID, Hand of cards
 
@@ -22,4 +24,6 @@ public abstract class GameBoard {
 	public abstract byte[] saveData();
 
 	public abstract void loadData(byte[] data);
+
+	public abstract int getGameType();
 }
