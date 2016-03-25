@@ -83,7 +83,7 @@ public class CrazyEightsGameBoard extends GameBoard {
         for (int i = 3; i < dataArr.length; i+=2) {
 	        String playerId = dataArr[i];
 	        if (playerId.equals(currPlayerId)) {
-		        currHand = new Hand(dataArr[i + 1], (LinearLayout) gameLayout.findViewById(R.id.hand_layout));
+		        currHand = new Hand(dataArr[i+1], (LinearLayout) gameLayout.findViewById(R.id.hand_layout));
 		        hands.put(playerId, currHand);
 	        } else
 		        hands.put(playerId, new Hand(dataArr[i+1]));  // hand data starts after the two decks

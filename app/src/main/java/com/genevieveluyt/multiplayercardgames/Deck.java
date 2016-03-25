@@ -4,19 +4,18 @@ import android.view.View;
 import android.widget.ImageView;
 
 import java.util.Collections;
-import java.util.LinkedList;
 
 /**
  * Created by Genevieve on 30/08/2015.
  */
-public class Deck extends CardCollection {
+public class Deck {
 
 	// Deck types
 	public static final int STANDARD = 0;   // standard 52-card collection
 	public static final int EMPTY = 1;      // can be used as a playing or discard pile
 	public static final int JOKER = 2;      // standard 52-card collection with 2 jokers
 
-	private LinkedList<Card> deck = collection; // alias
+	private CardCollection deck;
 	private ImageView deckView;
 
 	// If true, will show card contents, otherwise back of card
@@ -24,12 +23,12 @@ public class Deck extends CardCollection {
 
 	// Adds card to deck without affecting UI
 	Deck(int type) {
-		super();
+		deck = new CardCollection();
 		initDeck(type);
 	}
 
 	Deck(int type, boolean frontFacing, ImageView deckView) {
-		super();
+		deck = new CardCollection();
 		this.frontFacing = frontFacing;
 		this.deckView = deckView;
 
@@ -39,20 +38,23 @@ public class Deck extends CardCollection {
 				deckView.setImageResource(peek().getImg());
 			else
 				deckView.setImageResource(R.drawable.card_back);
+			deckView.setVisibility(View.VISIBLE);
 		}
 	}
 
 	// Make a deck from data
     Deck(String data, boolean frontFacing, ImageView deckView) {
-        super();
+		deck = new CardCollection();
 	    this.deckView = deckView;
 	    this.frontFacing = frontFacing;
-		super.loadData(data);
-	    if (frontFacing) {
-		    deckView.setImageResource(peek().getImg());
+		deck.loadData(data);
+	    if (!deck.isEmpty()) {
+		    if (frontFacing)
+			    deckView.setImageResource(peek().getImg());
+		    else
+			    deckView.setImageResource(R.drawable.card_back);
 		    deckView.setVisibility(View.VISIBLE);
-	    } else
-		    deckView.setImageResource(R.drawable.card_back);
+	    }
     }
 
 	void initDeck(int type) {
@@ -60,14 +62,14 @@ public class Deck extends CardCollection {
 			// Both decks start with a standard deck
 			for (int suit = 1; suit <= Card.NUM_SUITS; suit++) {
 				for (int rank = 1; rank <= Card.NUM_RANKS; rank++) {
-					addVirtual(new Card(suit, rank));
+					deck.add(new Card(suit, rank));
 				}
 			}
 
 			// Joker decks have 2 jokers
 			if (type == JOKER) {
-				addVirtual(new Card(Card.NONE, Card.JOKER));
-				addVirtual(new Card(Card.NONE, Card.JOKER));
+				deck.add(new Card(Card.NONE, Card.JOKER));
+				deck.add(new Card(Card.NONE, Card.JOKER));
 			}
 
 			// Shuffle deck
@@ -75,25 +77,36 @@ public class Deck extends CardCollection {
 		}
 	}
 
+	public String getData() {
+		return deck.getData();
+	}
+
+	public void loadData(String data) {
+		deck.loadData(data);
+	}
+
 	public boolean isFrontFacing() { return frontFacing; }
 
-	// Removes the top card from the deck and returns it
+	// Removes the top card from the deck UI and returns it
 	public Card draw() {
 		return remove(peek());
 	}
 
+	// Removes the top card from the deck and returns it
 	public Card drawVirtual() {
-		return removeVirtual(peek());
+		Card c = deck.peek();
+		deck.remove(c);
+		return c;
 	}
 
 	// Returns the top card of the deck without removing it
-	public Card peek() { return deck.peek(); }
+	public Card peek() { return deck.peek();
+	}
 
 	public void reshuffle() { Collections.shuffle(deck); }
 
-	@Override
 	public Card remove(Card card) {
-		removeVirtual(card);
+		deck.remove(card);
 		if (deck.isEmpty())
 			deckView.setVisibility(View.INVISIBLE);
 		else if (isFrontFacing())
@@ -101,12 +114,10 @@ public class Deck extends CardCollection {
 		return card;
 	}
 
-	public Card removeVirtual(Card card) {
+	public void removeVirtual(Card card) {
 		deck.remove(card);
-		return card;
 	}
 
-	@Override
 	public Card add(Card card) {
 		addVirtual(card);
 		deckView.setVisibility(View.VISIBLE);   // In case it was previously empty
@@ -117,8 +128,16 @@ public class Deck extends CardCollection {
 		return card;
 	}
 
-	public Card addVirtual(Card card) {
+	// Add card to deck without affecting UI
+	public void addVirtual(Card card) {
 		deck.addFirst(card);
-		return card;
+	}
+
+	public boolean isEmpty() {
+		return deck.isEmpty();
+	}
+
+	public String toString() {
+		return deck.toString();
 	}
 }

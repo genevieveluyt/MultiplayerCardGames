@@ -7,14 +7,13 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 
 /**
  * Created by Genevieve on 30/08/2015.
  */
-public class Hand extends CardCollection {
+public class Hand {
 
-	private LinkedList<Card> hand = collection;  // alias
+	private CardCollection hand;
 	private ArrayList<Card> selected;
 	private final int selectedRaiseAmt = 60;    // How much a selected card will raise above the others, in pixels
 	private boolean multiSelect = false;        // Can be set by user
@@ -35,7 +34,7 @@ public class Hand extends CardCollection {
 
 	// Make an empty hand
 	public Hand(LinearLayout handLayout) {
-		super();
+		hand = new CardCollection();
 		this.handLayout = handLayout;
 		this.handScrollLayout = (HorizontalScrollView) handLayout.getParent();
 		selected = new ArrayList<>();
@@ -43,7 +42,7 @@ public class Hand extends CardCollection {
 
 	// Make a hand starting with n cards drawn from deck
 	public Hand(Deck deck, int n, LinearLayout handLayout) {
-		super();
+		hand = new CardCollection();
 		this.handLayout = handLayout;
 		this.handScrollLayout = (HorizontalScrollView) handLayout.getParent();
 		selected = new ArrayList<>();
@@ -52,14 +51,14 @@ public class Hand extends CardCollection {
 
 	// Make a hand starting with n cards drawn from deck without adding them to the UI
 	public Hand(Deck deck, int n) {
-		super();
+		hand = new CardCollection();
 		selected = new ArrayList<>();
 		drawVirtual(deck, n);
 	}
 
 	// Make a hand by loading data
 	Hand(String data, LinearLayout handLayout) {
-		super();
+		hand = new CardCollection();
 		this.handLayout = handLayout;
 		this.handScrollLayout = (HorizontalScrollView) handLayout.getParent();
 		for (int i = 0; i < data.length(); i += 3) {
@@ -70,8 +69,8 @@ public class Hand extends CardCollection {
 
 	// Make a hand by loading data but without adding the cards to the UI
 	Hand(String data) {
-		super();
-		super.loadData(data);
+		hand = new CardCollection();
+		hand.loadData(data);
 		selected = new ArrayList<>();
 	}
 
@@ -116,12 +115,12 @@ public class Hand extends CardCollection {
 	}
 
 	public Card takeFrom(Card card, Hand oppHand) {
-		oppHand.remove(card);
+		oppHand.removeVirtual(card);
 		add(card);
 		return card;
 	}
 
-	@Override
+	// Add card to hand and hand UI
 	public Card add(Card card) {
 		addVirtual(card);
 
@@ -148,13 +147,12 @@ public class Hand extends CardCollection {
 		return card;
 	}
 
-	// Add card to hand without adding it to the UI
-	public Card addVirtual (Card card) {
+	// Add card to hand without affecting UI
+	public void addVirtual(Card card) {
 		hand.addLast(card);
-		return card;
 	}
 
-	@Override
+	// Remove card from hand and hand UI
 	public Card remove(Card card) {
 		hand.remove(card);
 		if (selected.contains(card)) {
@@ -165,10 +163,9 @@ public class Hand extends CardCollection {
 		return card;
 	}
 
-	// Remove card from hand without removing it from the UI
-	public Card removeVirtual (Card card) {
+	// Remove card from hand without affecting UI
+	public void removeVirtual(Card card) {
 		hand.remove(card);
-		return card;
 	}
 
 	/*
@@ -215,11 +212,27 @@ public class Hand extends CardCollection {
 		}
 	}
 
-	public boolean multiSelectEnabled() { return multiSelect; }
+	public boolean isMultiSelectEnabled() { return multiSelect; }
 
 	public void enableSelect() { selectEnabled = true; }
 
 	public void disableSelect() { selectEnabled = false; deselectAll(); }
 
 	public boolean isSelectEnabled() { return selectEnabled; }
+
+	public String getData() {
+		return hand.getData();
+	}
+
+	public void loadData(String data) {
+		hand.loadData(data);
+	}
+
+	public boolean isEmpty() {
+		return hand.isEmpty();
+	}
+
+	public String toString() {
+		return hand.toString();
+	}
 }
