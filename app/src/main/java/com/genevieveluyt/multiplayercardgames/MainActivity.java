@@ -40,8 +40,7 @@ import com.google.android.gms.plus.Plus;
 import java.util.ArrayList;
 
 public class MainActivity extends Activity
-		implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener,
-		View.OnClickListener {
+		implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
 	public static final String TAG = "CardGameActivity";
 
@@ -97,10 +96,6 @@ public class MainActivity extends Activity
 				.addApi(Games.API).addScope(Games.SCOPE_GAMES)
 				.build();
 
-		// Setup signin and signout buttons
-		findViewById(R.id.sign_out_button).setOnClickListener(this);
-		findViewById(R.id.sign_in_button).setOnClickListener(this);
-
 		//mTurnData = new CrazyEightsGameBoard("playerId", new ArrayList<String>(){ {add("playerId");} }, null, this);
 	}
 
@@ -125,12 +120,6 @@ public class MainActivity extends Activity
 	@Override
 	public void onConnected(Bundle connectionHint) {
 		Log.d(TAG, "onConnected(): Connection successful");
-		Button startMatchBtn = (Button) findViewById(R.id.startMatchButton);
-		Button checkMatchBtn = (Button) findViewById(R.id.checkGamesButton);
-		startMatchBtn.setClickable(true);
-		startMatchBtn.setBackgroundResource(R.color.new_match);
-		checkMatchBtn.setClickable(true);
-		checkMatchBtn.setBackgroundResource(R.color.check_match);
 
 		// Retrieve the TurnBasedMatch from the connectionHint
 		if (connectionHint != null) {
@@ -191,10 +180,30 @@ public class MainActivity extends Activity
 
 	// Open the create-game UI. You will get back an onActivityResult
 	// and figure out what to do.
-	public void onStartMatchClicked(View view) {
+	public void onNewGameClicked(View view) {
 		Intent intent = Games.TurnBasedMultiplayer.getSelectOpponentsIntent(mGoogleApiClient,
 				1, 7, false);
 		startActivityForResult(intent, RC_SELECT_PLAYERS);
+	}
+
+	public void onSignInOutClicked(View view) {
+		Button signInOutBtn = (Button) view;
+
+		// If sign-in clicked
+		if (signInOutBtn.getText().equals(getString(R.string.sign_in))) {
+			mSignInClicked = true;
+			mTurnBasedMatch = null;
+			mGoogleApiClient.connect();
+		}
+		// if sign-out clicked
+		else {
+			mSignInClicked = false;
+			Games.signOut(mGoogleApiClient);
+			if (mGoogleApiClient.isConnected()) {
+				mGoogleApiClient.disconnect();
+			}
+			setViewVisibility();
+		}
 	}
 
 	/********************************** In-game Menu **********************************************/
@@ -278,22 +287,21 @@ public class MainActivity extends Activity
 
 	/*********************************************************************************************/
 
-	// Sign-in, Sign out behavior
-
 	// Update the visibility based on what state we're in.
 	public void setViewVisibility() {
 		boolean isSignedIn = (mGoogleApiClient != null) && (mGoogleApiClient.isConnected());
-		Button startMatchBtn = (Button) findViewById(R.id.startMatchButton);
-		Button checkMatchBtn = (Button) findViewById(R.id.checkGamesButton);
+		Button signInOutBtn = (Button) findViewById(R.id.sign_in_out_button);
+		Button newGameBtn = (Button) findViewById(R.id.newGameButton);
+		Button checkGamesBtn = (Button) findViewById(R.id.checkGamesButton);
 
 		if (!isSignedIn) {
+			// Show home page with New Game and Check Games disabled
 			findViewById(R.id.menu_layout).setVisibility(View.VISIBLE);
-			findViewById(R.id.sign_out_button).setVisibility(View.GONE);
-			findViewById(R.id.sign_in_button).setVisibility(View.VISIBLE);
-			startMatchBtn.setClickable(false);
-			startMatchBtn.setBackgroundResource(R.color.grey);
-			checkMatchBtn.setClickable(false);
-			checkMatchBtn.setBackgroundResource(R.color.grey);
+			signInOutBtn.setText(R.string.sign_in);
+			newGameBtn.setClickable(false);
+			newGameBtn.setBackgroundResource(R.color.grey);
+			checkGamesBtn.setClickable(false);
+			checkGamesBtn.setBackgroundResource(R.color.grey);
 			findViewById(R.id.gameplay_layout).setVisibility(View.GONE);
 
 			if (mAlertDialog != null) {
@@ -307,10 +315,11 @@ public class MainActivity extends Activity
 			findViewById(R.id.gameplay_layout).setVisibility(View.VISIBLE);
 		} else {
 			findViewById(R.id.menu_layout).setVisibility(View.VISIBLE);
-			findViewById(R.id.sign_out_button).setVisibility(View.VISIBLE);
-			findViewById(R.id.sign_in_button).setVisibility(View.GONE);
-			findViewById(R.id.startMatchButton).setClickable(true);
-			findViewById(R.id.checkGamesButton).setClickable(true);
+			signInOutBtn.setText(R.string.sign_out);
+			newGameBtn.setClickable(true);
+			newGameBtn.setBackgroundResource(R.color.new_game);
+			checkGamesBtn.setClickable(true);
+			checkGamesBtn.setBackgroundResource(R.color.check_games);
 			findViewById(R.id.gameplay_layout).setVisibility(View.GONE);
 		}
 	}
@@ -663,27 +672,5 @@ public class MainActivity extends Activity
 		}
 
 		return false;
-	}
-
-	/*************************** implement View.OnClickListener ***********************************/
-
-	@Override
-	public void onClick(View v) {
-		switch (v.getId()) {
-			case R.id.sign_in_button:
-				mSignInClicked = true;
-				mTurnBasedMatch = null;
-				findViewById(R.id.sign_in_button).setVisibility(View.GONE);
-				mGoogleApiClient.connect();
-				break;
-			case R.id.sign_out_button:
-				mSignInClicked = false;
-				Games.signOut(mGoogleApiClient);
-				if (mGoogleApiClient.isConnected()) {
-					mGoogleApiClient.disconnect();
-				}
-				setViewVisibility();
-				break;
-		}
 	}
 }

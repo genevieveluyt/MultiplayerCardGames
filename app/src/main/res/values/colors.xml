@@ -7,7 +7,7 @@
 	<color name="green">#4caf50</color>
 	<color name="deep_orange">#ff5722</color>
 
-	<color name="new_match">#2196f3</color>
-	<color name="check_match">#4caf50</color>
+	<color name="new_game">#2196f3</color>
+	<color name="check_games">#4caf50</color>
 	<color name="sign_in_out">#009688</color>
 </resources>

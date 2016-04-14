@@ -157,13 +157,14 @@
             tools:ignore="UselessParent" >
 
             <Button
-                android:id="@+id/startMatchButton"
+                android:id="@+id/newGameButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="20dp"
-                android:onClick="onStartMatchClicked"
+                android:onClick="onNewGameClicked"
+                android:clickable="false"
                 android:text="@string/new_game"
-                android:background="@color/new_match"/>
+                android:background="@color/grey"/>
 
             <Button
                 android:id="@+id/checkGamesButton"
@@ -171,24 +172,16 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="20dp"
                 android:onClick="onCheckGamesClicked"
-                android:text="@string/current_games"
                 android:clickable="false"
-                android:background="@color/check_match"/>
+                android:text="@string/current_games"
+                android:background="@color/grey"/>
 
 	        <Button
-		        android:id="@+id/sign_out_button"
+		        android:id="@+id/sign_in_out_button"
 		        android:layout_width="match_parent"
 		        android:layout_height="wrap_content"
 		        android:layout_marginBottom="20dp"
-		        android:visibility="gone"
-		        android:text="@string/sign_out"
-		        android:background="@color/sign_in_out"/>
-
-	        <Button
-		        android:id="@+id/sign_in_button"
-		        android:layout_width="match_parent"
-		        android:layout_height="wrap_content"
-		        android:layout_marginBottom="20dp"
+		        android:onClick="onSignInOutClicked"
 		        android:text="@string/sign_in"
 		        android:background="@color/sign_in_out"/>
 
