@@ -14,10 +14,8 @@
 
 <resources xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <style name="Theme.App" parent="@android:style/Theme.Holo.Light">
-        <item
-            name="android:windowBackground">@drawable/grey_background_pattern</item>
-        <item name="android:buttonStyle">@style/Button</item>
+    <style name="Theme.App" parent="@android:style/Theme.Holo.Light.NoActionBar">
+        <item name="android:windowBackground">@drawable/grey_background_pattern</item>
         <item name="android:textAppearance">@style/DefaultText</item>
         <item name="android:textAppearanceLarge">@style/Heading</item>
         <item name="android:textAppearanceMedium">@style/SubHeading</item>
@@ -60,16 +58,5 @@
 
     <style name="HelpText.Caption">
         <item name="android:textSize">@dimen/font_size_small</item>
-    </style>
-
-    <style name="Button" parent="@android:style/Widget.Button">
-        <item name="android:background">@drawable/button</item>
-        <item name="android:gravity">center_vertical|center_horizontal</item>
-        <item name="android:textColor">#FF000000</item>
-        <item name="android:focusable">true</item>
-        <item name="android:clickable">true</item>
-        <item name="android:textSize">24sp</item>
-        <item name="android:padding">12dp</item>
-        <item name="android:fontFamily">sans-serif</item>
     </style>
 </resources>
