@@ -27,8 +27,10 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.Scopes;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.games.Games;
 import com.google.android.gms.games.GamesStatusCodes;
 import com.google.android.gms.games.multiplayer.Multiplayer;
@@ -92,8 +94,9 @@ public class MainActivity extends Activity
 		mGoogleApiClient = new GoogleApiClient.Builder(this)
 				.addConnectionCallbacks(this)
 				.addOnConnectionFailedListener(this)
-				.addApi(Plus.API).addScope(Plus.SCOPE_PLUS_LOGIN)
-				.addApi(Games.API).addScope(Games.SCOPE_GAMES)
+				.addApi(Plus.API)
+				.addApi(Games.API)
+				.addScope(Games.SCOPE_GAMES)
 				.build();
 
 		//mTurnData = new CrazyEightsGameBoard("playerId", new ArrayList<String>(){ {add("playerId");} }, null, this);
