@@ -7,17 +7,20 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.ListIterator;
 
 /**
  * Created by Genevieve on 30/08/2015.
  */
-public class Hand {
+public class Hand implements Iterable<Card> {
 
 	private CardCollection hand;
 	private ArrayList<Card> selected;
 	private final int selectedRaiseAmt = 60;    // How much a selected card will raise above the others, in pixels
 	private boolean multiSelect = false;        // Can be set by user
 	private boolean selectEnabled = true;
+	private View.OnClickListener handClickListener;
 
 	// XML layouts
 	private LinearLayout handLayout;
@@ -33,18 +36,20 @@ public class Hand {
 
 
 	// Make an empty hand
-	public Hand(LinearLayout handLayout) {
+	public Hand(LinearLayout handLayout, View.OnClickListener handClickListener) {
 		hand = new CardCollection();
 		this.handLayout = handLayout;
 		this.handScrollLayout = (HorizontalScrollView) handLayout.getParent();
+		this.handClickListener = handClickListener;
 		selected = new ArrayList<>();
 	}
 
 	// Make a hand starting with n cards drawn from deck
-	public Hand(Deck deck, int n, LinearLayout handLayout) {
+	public Hand(Deck deck, int n, LinearLayout handLayout, View.OnClickListener handClickListener) {
 		hand = new CardCollection();
 		this.handLayout = handLayout;
 		this.handScrollLayout = (HorizontalScrollView) handLayout.getParent();
+		this.handClickListener = handClickListener;
 		selected = new ArrayList<>();
 		draw(deck, n);
 	}
@@ -57,10 +62,11 @@ public class Hand {
 	}
 
 	// Make a hand by loading data
-	Hand(String data, LinearLayout handLayout) {
+	Hand(String data, LinearLayout handLayout, View.OnClickListener handClickListener) {
 		hand = new CardCollection();
 		this.handLayout = handLayout;
 		this.handScrollLayout = (HorizontalScrollView) handLayout.getParent();
+		this.handClickListener = handClickListener;
 		for (int i = 0; i < data.length(); i += 3) {
 			add(new Card(Integer.parseInt(data.substring(i, i+3))));
 		}
@@ -129,12 +135,7 @@ public class Hand {
 		cardView.setImageResource(card.getImg());
 		cardView.setBackgroundColor(Color.alpha(0));
 		cardView.setId(card.getId());
-		cardView.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				select(new Card(v.getId()));
-			}
-		});
+		cardView.setOnClickListener(handClickListener);
 		cardView.setPadding(0, selectedRaiseAmt, 0, 0);
 		handLayout.addView(cardView, params);
 
@@ -234,5 +235,9 @@ public class Hand {
 
 	public String toString() {
 		return hand.toString();
+	}
+
+	public Iterator<Card> iterator()  {
+		return hand.listIterator(0);
 	}
 }

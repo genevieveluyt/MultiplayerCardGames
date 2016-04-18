@@ -174,19 +174,19 @@ public class MainActivity extends Activity
 
 	/******************************** Home Menu Options *******************************************/
 
-	// Displays your inbox. You will get back onActivityResult where
-	// you will need to figure out what you clicked on.
-	public void onCheckGamesClicked(View view) {
-		Intent intent = Games.TurnBasedMultiplayer.getInboxIntent(mGoogleApiClient);
-		startActivityForResult(intent, RC_LOOK_AT_MATCHES);
-	}
-
 	// Open the create-game UI. You will get back an onActivityResult
 	// and figure out what to do.
 	public void onNewGameClicked(View view) {
 		Intent intent = Games.TurnBasedMultiplayer.getSelectOpponentsIntent(mGoogleApiClient,
 				1, 7, false);
 		startActivityForResult(intent, RC_SELECT_PLAYERS);
+	}
+
+	// Displays your inbox. You will get back onActivityResult where
+	// you will need to figure out what you clicked on.
+	public void onCheckGamesClicked(View view) {
+		Intent intent = Games.TurnBasedMultiplayer.getInboxIntent(mGoogleApiClient);
+		startActivityForResult(intent, RC_LOOK_AT_MATCHES);
 	}
 
 	public void onSignInOutClicked(View view) {
@@ -243,30 +243,24 @@ public class MainActivity extends Activity
 		setViewVisibility();
 	}
 
-	// Finish the game. Sometimes, this is your only choice.
+	// End turn
 	public void onFinishClicked(View view) {
-		showSpinner();
-		Games.TurnBasedMultiplayer.finishMatch(mGoogleApiClient, mMatch.getMatchId())
-				.setResultCallback(new ResultCallback<TurnBasedMultiplayer.UpdateMatchResult>() {
-					@Override
-					public void onResult(TurnBasedMultiplayer.UpdateMatchResult result) {
-						processResult(result);
-					}
-				});
-
-		isDoingTurn = false;
-		setViewVisibility();
-	}
-
-
-	// Upload your new gamestate, then take a turn, and pass it on to the next
-	// player.
-	public void onDoneClicked(View view) {
 		// TODO move to respective game board
-		// if player's hand or draw deck is empty, finish game
 		CrazyEightsGameBoard game = (CrazyEightsGameBoard) mTurnData;
+
+		// if player's hand or draw deck is empty, finish game
 		if (game.currHand.isEmpty() || game.drawDeck.isEmpty()){
-			onFinishClicked(view);
+			showSpinner();
+			Games.TurnBasedMultiplayer.finishMatch(mGoogleApiClient, mMatch.getMatchId())
+					.setResultCallback(new ResultCallback<TurnBasedMultiplayer.UpdateMatchResult>() {
+						@Override
+						public void onResult(TurnBasedMultiplayer.UpdateMatchResult result) {
+							processResult(result);
+						}
+					});
+
+			isDoingTurn = false;
+			setViewVisibility();
 			return;
 		}
 
@@ -566,8 +560,8 @@ public class MainActivity extends Activity
 
 		isDoingTurn = false;
 
-		showWarning("Match",
-				"This match is canceled.  All other players will have their game ended.");
+		//showWarning("Match",
+		//		"This match is canceled.  All other players will have their game ended.");
 	}
 
 	private void processResult(TurnBasedMultiplayer.InitiateMatchResult result) {
@@ -594,8 +588,11 @@ public class MainActivity extends Activity
 		if (!checkStatusCode(match, result.getStatus().getStatusCode())) {
 			return;
 		}
-		isDoingTurn = (match.getTurnStatus() == TurnBasedMatch.MATCH_TURN_STATUS_MY_TURN);
+		//isDoingTurn = (match.getTurnStatus() == TurnBasedMatch.MATCH_TURN_STATUS_MY_TURN);
+		isDoingTurn = false;
 		showWarning("Left", "You've left this match.");
+
+		setViewVisibility();
 	}
 
 

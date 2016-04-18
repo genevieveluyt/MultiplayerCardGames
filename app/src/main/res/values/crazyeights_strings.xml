@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="choose_suit">Choose a suit:</string>
+    <string name="hearts">Hearts</string>
+    <string name="clubs">Clubs</string>
+    <string name="diamonds">Diamonds</string>
+    <string name="spades">Spades</string>
+    <string name="you_must_play">You must play</string>
+
+    <string-array name="suits">
+        <item>@string/hearts</item>
+        <item>@string/spades</item>
+        <item>@string/diamonds</item>
+        <item>@string/clubs</item>
+    </string-array>
+</resources>

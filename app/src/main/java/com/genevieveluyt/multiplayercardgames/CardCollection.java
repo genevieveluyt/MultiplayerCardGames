@@ -25,7 +25,8 @@ public class CardCollection extends LinkedList<Card> {
 		StringBuilder str = new StringBuilder();
 		for (Card card : this)
 			str.append(card + ", ");
-		str.setLength(str.length()-2);
+		if (str.length() > 0)
+			str.setLength(str.length()-2);
 
 		return str.toString();
 	}

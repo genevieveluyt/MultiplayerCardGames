@@ -39,7 +39,7 @@ public class Deck {
 			else
 				deckView.setImageResource(R.drawable.card_back);
 			deckView.setVisibility(View.VISIBLE);
-		}
+		} else deckView.setVisibility(View.INVISIBLE);
 	}
 
 	// Make a deck from data
@@ -54,7 +54,7 @@ public class Deck {
 		    else
 			    deckView.setImageResource(R.drawable.card_back);
 		    deckView.setVisibility(View.VISIBLE);
-	    }
+	    } else deckView.setVisibility(View.INVISIBLE);
     }
 
 	void initDeck(int type) {

@@ -13,7 +13,7 @@
         android:paddingLeft="@dimen/activity_horizontal_margin"
         android:paddingRight="@dimen/activity_horizontal_margin"
         android:paddingTop="@dimen/activity_vertical_margin"
-        android:visibility="gone"
+        android:visibility="visible"
         tools:context=".MainActivity"
         android:background="@drawable/table_background" >
 
@@ -33,6 +33,14 @@
             android:layout_weight="3"
             android:gravity="center"
             android:orientation="horizontal">
+
+			<TextView
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:textAppearance="?android:attr/textAppearanceLarge"
+				android:text=""
+				android:id="@+id/must_play_suit"
+				android:layout_gravity="center_horizontal" />
 
             <ImageButton
 	            android:id="@+id/drawdeck_view"
@@ -58,20 +66,6 @@
 		        android:visibility="invisible"
 		        android:clickable="true"
 		        />
-
-	        <ImageButton
-		        android:id="@+id/doneButton"
-		        android:onClick="onDoneClicked"
-		        android:layout_width="30dp"
-		        android:layout_height="wrap_content"
-		        android:layout_marginLeft="20dp"
-		        android:layout_marginStart="20dp"
-		        android:layout_marginRight="10dp"
-		        android:layout_marginEnd="10dp"
-		        android:adjustViewBounds="true"
-		        android:scaleType="fitCenter"
-		        android:background="@android:color/transparent"
-		        android:src="@drawable/btn_end_turn"/>
 
         </LinearLayout>
 
@@ -112,7 +106,7 @@
                 android:onClick="onCancelClicked"
                 android:text="@string/cancel"
                 android:textAppearance="@style/HelpText.Heading"
-                tools:ignore="ButtonStyle" />
+                 />
 
             <Button
                 android:id="@+id/leaveButton"
@@ -142,7 +136,7 @@
         android:layout_centerHorizontal="true"
         android:layout_centerVertical="true"
         android:orientation="vertical"
-        android:visibility="visible"
+        android:visibility="invisible"
         tools:context=".MainActivity" >
 
         <LinearLayout
@@ -156,7 +150,7 @@
             tools:context=".MainActivity"
             tools:ignore="UselessParent" >
 
-            <Button
+			<Button
                 android:id="@+id/newGameButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

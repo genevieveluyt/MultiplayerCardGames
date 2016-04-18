@@ -199,6 +199,17 @@ public class Card {
 		return cardImages.get(card.getId());
 	}
 
+	public static String suitToString(int suit) {
+		switch (suit) {
+			case CLUBS: return "Clubs";
+			case DIAMONDS: return "Diamonds";
+			case HEARTS: return "Hearts";
+			case SPADES: return "Spades";
+			case NONE: return "None";
+		}
+		return null;
+	}
+
 	@Override
 	public boolean equals(Object obj) {
 		//return this.rank == ((Card) obj).getRank() && this.suit == ((Card) obj).getSuit();
