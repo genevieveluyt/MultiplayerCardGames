@@ -21,8 +21,8 @@ android {
         applicationId "com.genevieveluyt.multiplayercardgames"
         minSdkVersion 16
         targetSdkVersion 23
-        versionCode 6
-        versionName "1.0.2"
+        versionCode 8
+        versionName "1.0.4"
     }
     buildTypes {
         release {

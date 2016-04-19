@@ -3,8 +3,8 @@ package com.genevieveluyt.multiplayercardgames;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.DialogInterface;
-import android.support.v7.app.AlertDialog;
 import android.view.View;
+import android.widget.Button;
 import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -29,28 +29,30 @@ import java.util.ArrayList;
  */
 public class CrazyEightsGameBoard extends GameBoard {
 
-	private static final int STARTING_HAND = 8;
+	private static final int STARTING_HAND = 7;
 
 	static Activity activity;
 
     // Layouts
-	LinearLayout gameLayout;
-	LinearLayout handLayout;
-	HorizontalScrollView oppLayout;   // TODO move to parent class?
+	static LinearLayout gameLayout;
+	static LinearLayout handLayout;
+	static HorizontalScrollView oppLayout;   // TODO move to parent class?
+	static TextView mustPlayView;
+	static Button leaveButton;
 
 	// Game variables
 	//HashMap<String, Hand> hands; in parent class
-	String currPlayerId;
-	ArrayList<String> playerIds;
-	Hand currHand;
-	Deck drawDeck;
-	Deck playDeck;
+	static String currPlayerId;
+	static ArrayList<String> playerIds;
+	static Hand currHand;
+	static Deck drawDeck;
+	static Deck playDeck;
 	static Dialog chooseSuitDialog;
 
 	// Gameplay variables
-	boolean hasPlayed = false; // current player has placed a card on the play deck
+	static boolean hasPlayed = false; // current player has placed a card on the play deck
 	static int chosenSuit = 0;		// suit chosen after playing an 8
-	int mustPlaySuit;	// suit chosen by previous player after playing an 8
+	static int mustPlaySuit = 0;	// suit chosen by previous player after playing an 8
 
 	View.OnClickListener deckClickListener = new View.OnClickListener() {
 		@Override
@@ -58,6 +60,15 @@ public class CrazyEightsGameBoard extends GameBoard {
 			switch (v.getId()){
 				case R.id.drawdeck_view:
 					currHand.draw(drawDeck);
+					if (drawDeck.isEmpty()) {
+						// if ran out of cards to draw, reshuffle the play deck and use as draw deck
+						Card topCard = playDeck.drawVirtual();
+						drawDeck = playDeck;
+						drawDeck.reshuffle();
+						activity.findViewById(R.id.drawdeck_view).setVisibility(View.VISIBLE);
+						playDeck = new Deck(Deck.EMPTY, true, (ImageView) activity.findViewById(R.id.playdeck_view));
+						playDeck.add(topCard);
+					}
 					break;
 				case R.id.playdeck_view:
 					if (validPlay()) {
@@ -65,9 +76,9 @@ public class CrazyEightsGameBoard extends GameBoard {
 						hasPlayed = true;
 						if (currHand.isEmpty()) {
 							BaseGameUtils.makeSimpleDialog(activity, activity.getString(R.string.you_won)).show();
-							//activity.findViewById(R.id.leaveButton).performClick();
+							leaveButton.performClick();
 						} else if (playDeck.peek().getRank() == 8) {
-							activity.findViewById(R.id.leaveButton).setClickable(false);
+							leaveButton.setClickable(false);
 							chooseSuitDialog.show();
 						}
 					} else if (hasPlayed && playDeck.peek().getRank() == 8)
@@ -89,13 +100,16 @@ public class CrazyEightsGameBoard extends GameBoard {
 		this.playerIds = playerIds;
 		this.gameLayout = (LinearLayout) activity.findViewById(R.id.gameplay_layout);
 		this.handLayout = (LinearLayout) activity.findViewById(R.id.hand_layout);
-		this.handLayout.removeAllViews();
 		this.oppLayout = (HorizontalScrollView) activity.findViewById(R.id.opponent_scroll_layout); // TODO temp
+		mustPlayView = (TextView) activity.findViewById(R.id.must_play_suit);
+		leaveButton = (Button) activity.findViewById(R.id.leave_button);
 		this.activity = activity;
 		if (data == null)
 			initBoard();
 		else
 			loadData(data);
+
+		activateGUI();
 	}
 
 	@Override
@@ -108,7 +122,6 @@ public class CrazyEightsGameBoard extends GameBoard {
 			if (MainActivity.DEBUG) System.out.println(player + " hand: " + hands.get(player));
 		}
 		playDeck.addVirtual(drawDeck.drawVirtual());
-		activateGUI();
 
 		// TODO Make this and opponent_layout.xml dynamic
 
@@ -151,7 +164,6 @@ public class CrazyEightsGameBoard extends GameBoard {
 		        hands.put(playerId, new Hand(dataArr[i+1]));  // hand data starts after the two decks
 	        if (MainActivity.DEBUG) System.out.println(playerId + " hand: " + hands.get(playerId));
         }
-		activateGUI();
 	}
 
 	@Override
@@ -163,11 +175,15 @@ public class CrazyEightsGameBoard extends GameBoard {
 		gameLayout.findViewById(R.id.drawdeck_view).setOnClickListener(deckClickListener);
 		gameLayout.findViewById(R.id.playdeck_view).setOnClickListener(deckClickListener);
 
-		if (mustPlaySuit != 0) {
+		if (mustPlaySuit == 0)
+			mustPlayView.setText("");
+		else {
 			String str = activity.getString(R.string.you_must_play);
 			str += " " + (Card.suitToString(mustPlaySuit));
-			((TextView) activity.findViewById(R.id.must_play_suit)).setText(str);
+			mustPlayView.setText(str);
 		}
+
+		this.handLayout.removeAllViews();
 
 		android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(activity);
 		builder.setTitle(R.string.choose_suit)
@@ -176,7 +192,6 @@ public class CrazyEightsGameBoard extends GameBoard {
 						chosenSuit = which+1;
 						if (MainActivity.DEBUG)
 							System.out.println("CrazyEightsGameBoard|activateGUI(): chose suit " + Card.suitToString(chosenSuit));
-						activity.findViewById(R.id.leaveButton).setClickable(true);
 					}
 				});
 		chooseSuitDialog = builder.create();
@@ -190,7 +205,7 @@ public class CrazyEightsGameBoard extends GameBoard {
 						chosenSuit = which+1;
 						if (MainActivity.DEBUG)
 							System.out.println("CrazyEightsGameBoard|activateGUI(): chose suit " + Card.suitToString(chosenSuit));
-						activity.findViewById(R.id.leaveButton).setClickable(true);
+						leaveButton.setClickable(true);
 					}
 				});
 		return builder.create();
@@ -218,7 +233,7 @@ public class CrazyEightsGameBoard extends GameBoard {
 		Card target = playDeck.peek();
 		// if previous player played an 8
 		if (mustPlaySuit != 0) {
-			return ((card.getSuit() == mustPlaySuit && card.getRank() == target.getRank()) || card.getRank() == 8);
+			return (card.getSuit() == mustPlaySuit || card.getRank() == 8);
 		}
 		return (card.getSuit() == target.getSuit() || card.getRank() == target.getRank() || card.getRank() == 8);
 	}
