@@ -100,6 +100,7 @@ public class CrazyEightsGameBoard extends GameBoard {
 		this.playerIds = playerIds;
 		this.gameLayout = (LinearLayout) activity.findViewById(R.id.gameplay_layout);
 		this.handLayout = (LinearLayout) activity.findViewById(R.id.hand_layout);
+		this.handLayout.removeAllViews();
 		this.oppLayout = (HorizontalScrollView) activity.findViewById(R.id.opponent_scroll_layout); // TODO temp
 		mustPlayView = (TextView) activity.findViewById(R.id.must_play_suit);
 		leaveButton = (Button) activity.findViewById(R.id.leave_button);
@@ -182,8 +183,6 @@ public class CrazyEightsGameBoard extends GameBoard {
 			str += " " + (Card.suitToString(mustPlaySuit));
 			mustPlayView.setText(str);
 		}
-
-		this.handLayout.removeAllViews();
 
 		android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(activity);
 		builder.setTitle(R.string.choose_suit)
