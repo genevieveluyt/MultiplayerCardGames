@@ -70,6 +70,7 @@ public class MainActivity extends Activity
 	private static final int RC_SIGN_IN = 9001;
 	final static int RC_SELECT_PLAYERS = 10000;
 	final static int RC_LOOK_AT_MATCHES = 10001;
+	private static final int RC_CHOOSE_GAME = 10002;
 
 	// How long to show toasts.
 	final static int TOAST_DELAY = Toast.LENGTH_SHORT;
@@ -84,6 +85,9 @@ public class MainActivity extends Activity
 	// Do not retain references to match data once you have
 	// taken an action on the match, such as takeTurn()
 	public GameBoard mTurnData;
+
+	public int mGameType;
+	private boolean mGameChosen = false;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -139,6 +143,12 @@ public class MainActivity extends Activity
 		}
 
 		setViewVisibility();
+
+		if (mGameChosen) {
+			Intent intent = Games.TurnBasedMultiplayer.getSelectOpponentsIntent(mGoogleApiClient,
+					1, 7, false);
+			startActivityForResult(intent, RC_SELECT_PLAYERS);
+		}
 	}
 
 	@Override
@@ -177,9 +187,11 @@ public class MainActivity extends Activity
 	// Open the create-game UI. You will get back an onActivityResult
 	// and figure out what to do.
 	public void onNewGameClicked(View view) {
-		Intent intent = Games.TurnBasedMultiplayer.getSelectOpponentsIntent(mGoogleApiClient,
+		/*Intent intent = Games.TurnBasedMultiplayer.getSelectOpponentsIntent(mGoogleApiClient,
 				1, 7, false);
-		startActivityForResult(intent, RC_SELECT_PLAYERS);
+		startActivityForResult(intent, RC_SELECT_PLAYERS);*/
+		Intent intent = new Intent(this, ChooseCardGame.class);
+		startActivityForResult(intent, RC_CHOOSE_GAME);
 	}
 
 	// Displays your inbox. You will get back onActivityResult where
@@ -385,7 +397,14 @@ public class MainActivity extends Activity
 	@Override
 	public void onActivityResult(int request, int response, Intent data) {
 		super.onActivityResult(request, response, data);
-		if (request == RC_SIGN_IN) {
+		if (request == RC_CHOOSE_GAME) {
+			mGoogleApiClient.connect();
+			if (response == Activity.RESULT_OK) {
+				mGameChosen = true;
+				mGameType = data.getIntExtra(ChooseCardGame.GAME_TYPE_EXTRA, 0);
+			} else
+				mGameChosen = false;
+		} else if (request == RC_SIGN_IN) {
 			mSignInClicked = false;
 			mResolvingConnectionFailure = false;
 			if (response == Activity.RESULT_OK) {

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="game_names_array">
+        <item>Crazy Eights</item>
+        <item>Other Games</item>
+    </string-array>
+
+    <string-array name="game_info_array">
+        <item>@string/crazy_eights_info</item>
+        <item>@string/coming_soon_info</item>
+    </string-array>
+
+    <string name="crazy_eights_info">
+        <![CDATA[
+        <h4>Gameplay</h4>
+        Players take turns playing a single card onto the play deck. A valid play consists of:<br>
+        - matching suit<br>
+        - matching rank (number)<br>
+        - an 8<br><br>
+        If an 8 is played, a suit is chosen which the next player must play. An 8 is always a valid play.<br><br>
+        If there is no valid play, cards are drawn until a valid play becomes available.<br><br>
+        Cards may be drawn at any time, even if a valid play is available.
+        <h4>Winning</h4>
+        The first player to empty their hand wins!
+        ]]>
+    </string>
+    <string name="coming_soon_info">More games coming soon!</string>
+
+    <string name="gameplay">Gameplay</string>
+    <string name="play">Play</string>
+
+</resources>

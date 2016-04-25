@@ -2,8 +2,8 @@
     <string name="app_name">Multiplayer Card Games</string>
 
     <string name="action_settings">Settings</string>
-	<string name="sign_out">Sign Out</string>
-	<string name="sign_in">Sign In</string>
+    <string name="sign_out">Sign Out</string>
+    <string name="sign_in">Sign In</string>
     <string name="guesser_prompt">This has not been set.</string>
     <string name="leave">Leave</string>
     <string name="cancel">Cancel</string>
@@ -13,4 +13,11 @@
     <string name="signin_other_error">There was an issue with sign in. Please try again later.</string>
     <string name="you_won">Congratulations! You won!</string>
     <string name="ok">Ok</string>
+    <string name="title_activity_choose_card_game">ChooseCardGame</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="action_example">Example action</string>
+
 </resources>

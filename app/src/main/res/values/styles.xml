@@ -24,7 +24,7 @@
 
     <style name="DefaultText" parent="@android:style/TextAppearance">
         <item name="android:fontFamily">sans-serif-light</item>
-        <item name="android:textSize">15sp</item>
+        <item name="android:textSize">16sp</item>
     </style>
 
     <style name="GuessWordText" parent="@android:style/TextAppearance">
@@ -37,7 +37,7 @@
         <item name="android:fontFamily">sans-serif</item>
         <item name="android:textSize">30sp</item>
         <item name="android:paddingLeft">10dp</item>
-        <item name="android:textStyle">italic</item>
+        <item name="android:textStyle">bold</item>
     </style>
 
     <style name="SubHeading" parent="@android:style/TextAppearance.Medium">
