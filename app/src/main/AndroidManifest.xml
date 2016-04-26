@@ -28,6 +28,7 @@
         <activity
             android:name=".ChooseCardGame"
             android:label="@string/title_activity_choose_card_game"
+            android:screenOrientation="portrait"
             android:parentActivityName=".MainActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
