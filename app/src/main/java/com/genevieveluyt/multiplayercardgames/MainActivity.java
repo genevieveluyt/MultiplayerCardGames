@@ -87,7 +87,6 @@ public class MainActivity extends Activity
 	public GameBoard mTurnData;
 
 	public int mGameType;
-	private boolean mGameChosen = false;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -109,14 +108,16 @@ public class MainActivity extends Activity
 	@Override
 	protected void onStart() {
 		super.onStart();
-		Log.d(TAG, "onStart(): Connecting to Google APIs");
-		mGoogleApiClient.connect();
+		if (!mGoogleApiClient.isConnected()) {
+			Log.d(TAG, "onStart(): Connecting to Google APIs");
+			mGoogleApiClient.connect();
+		}
 	}
 
 	@Override
-	protected void onStop() {
-		super.onStop();
-		Log.d(TAG, "onStop(): Disconnecting from Google APIs");
+	protected void onDestroy() {
+		super.onDestroy();
+		Log.d(TAG, "onDestroy(): Disconnecting from Google APIs");
 		if (mGoogleApiClient.isConnected()) {
 			mGoogleApiClient.disconnect();
 		}
@@ -143,12 +144,6 @@ public class MainActivity extends Activity
 		}
 
 		setViewVisibility();
-
-		if (mGameChosen) {
-			Intent intent = Games.TurnBasedMultiplayer.getSelectOpponentsIntent(mGoogleApiClient,
-					1, 7, false);
-			startActivityForResult(intent, RC_SELECT_PLAYERS);
-		}
 	}
 
 	@Override
@@ -400,10 +395,11 @@ public class MainActivity extends Activity
 		if (request == RC_CHOOSE_GAME) {
 			mGoogleApiClient.connect();
 			if (response == Activity.RESULT_OK) {
-				mGameChosen = true;
 				mGameType = data.getIntExtra(ChooseCardGame.GAME_TYPE_EXTRA, 0);
-			} else
-				mGameChosen = false;
+				Intent intent = Games.TurnBasedMultiplayer.getSelectOpponentsIntent(mGoogleApiClient,
+						1, 7, false);
+				startActivityForResult(intent, RC_SELECT_PLAYERS);
+			}
 		} else if (request == RC_SIGN_IN) {
 			mSignInClicked = false;
 			mResolvingConnectionFailure = false;
