@@ -100,17 +100,17 @@ public class CrazyEightsGameBoard extends GameBoard {
 		this.playerIds = playerIds;
 		this.gameLayout = (LinearLayout) activity.findViewById(R.id.gameplay_layout);
 		this.handLayout = (LinearLayout) activity.findViewById(R.id.hand_layout);
-		this.handLayout.removeAllViews();
 		this.oppLayout = (HorizontalScrollView) activity.findViewById(R.id.opponent_scroll_layout); // TODO temp
 		mustPlayView = (TextView) activity.findViewById(R.id.must_play_suit);
 		leaveButton = (Button) activity.findViewById(R.id.leave_button);
 		this.activity = activity;
 		if (data == null)
 			initBoard();
-		else
+		else {
 			loadData(data);
+			activateGUI();
+		}
 
-		activateGUI();
 	}
 
 	@Override
@@ -133,7 +133,7 @@ public class CrazyEightsGameBoard extends GameBoard {
 	 */
 	@Override
 	public byte[] saveData() {
-		if (MainActivity.DEBUG) System.out.println("Saving game data");
+		if (MainActivity.DEBUG) System.out.println("CrazyEightsGameBoard|loadData(byte[]): Saving game data");
         StringBuilder dataStr = new StringBuilder();
 		dataStr.append(getGameType()).append(separator)
         .append(drawDeck.getData()).append(separator)
@@ -151,6 +151,7 @@ public class CrazyEightsGameBoard extends GameBoard {
 	@Override
 	public void loadData(byte[] data) {
 		if (MainActivity.DEBUG) System.out.println("CrazyEightsGameBoard|loadData(byte[]): Loading game data");
+		handLayout.removeAllViews();
         String dataStr = new String(data, Charset.forName("UTF-8"));
         String[] dataArr = dataStr.split(String.valueOf(separator));
         drawDeck = new Deck(dataArr[1], false, (ImageView) gameLayout.findViewById(R.id.drawdeck_view));

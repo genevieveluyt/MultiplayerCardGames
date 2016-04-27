@@ -31,6 +31,7 @@ import com.google.android.gms.common.Scopes;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Scope;
+import com.google.android.gms.games.Game;
 import com.google.android.gms.games.Games;
 import com.google.android.gms.games.GamesStatusCodes;
 import com.google.android.gms.games.multiplayer.Multiplayer;
@@ -50,7 +51,7 @@ public class MainActivity extends Activity
 	public static final boolean DEBUG = true;
 
 	// Client used to interact with Google APIs
-	private GoogleApiClient mGoogleApiClient;
+	static GoogleApiClient mGoogleApiClient;
 
 	// Are we currently resolving a connection failure?
 	private boolean mResolvingConnectionFailure = false;
@@ -70,7 +71,8 @@ public class MainActivity extends Activity
 	private static final int RC_SIGN_IN = 9001;
 	final static int RC_SELECT_PLAYERS = 10000;
 	final static int RC_LOOK_AT_MATCHES = 10001;
-	private static final int RC_CHOOSE_GAME = 10002;
+	final static int RC_CHOOSE_GAME = 10002;
+	final static int RC_PLAY_GAME = 10003;
 
 	// How long to show toasts.
 	final static int TOAST_DELAY = Toast.LENGTH_SHORT;
@@ -101,8 +103,6 @@ public class MainActivity extends Activity
 				.addApi(Games.API)
 				.addScope(Games.SCOPE_GAMES)
 				.build();
-
-		//mTurnData = new CrazyEightsGameBoard("playerId", new ArrayList<String>(){ {add("playerId");} }, null, this);
 	}
 
 	@Override
@@ -177,14 +177,20 @@ public class MainActivity extends Activity
 		setViewVisibility();
 	}
 
+	public void playTurn() {
+		String participantId = mMatch.getParticipantId(Games.Players.getCurrentPlayerId(mGoogleApiClient));
+		Intent intent = new Intent(this, GameActivity.class);
+		intent.putExtra(GameActivity.EXTRA_CURR_PARTICIPANT_ID, participantId);
+		intent.putExtra(GameActivity.EXTRA_PARTICIPANT_IDS, mMatch.getParticipantIds());
+		intent.putExtra(GameActivity.EXTRA_DATA, mMatch.getData());
+		startActivityForResult(intent, RC_PLAY_GAME);
+	}
+
 	/******************************** Home Menu Options *******************************************/
 
 	// Open the create-game UI. You will get back an onActivityResult
 	// and figure out what to do.
 	public void onNewGameClicked(View view) {
-		/*Intent intent = Games.TurnBasedMultiplayer.getSelectOpponentsIntent(mGoogleApiClient,
-				1, 7, false);
-		startActivityForResult(intent, RC_SELECT_PLAYERS);*/
 		Intent intent = new Intent(this, ChooseCardGame.class);
 		startActivityForResult(intent, RC_CHOOSE_GAME);
 	}
@@ -216,79 +222,6 @@ public class MainActivity extends Activity
 		}
 	}
 
-	/********************************** In-game Menu **********************************************/
-
-	// Cancel the game. Should possibly wait until the game is canceled before
-	// giving up on the view.
-	public void onCancelClicked(View view) {
-		showSpinner();
-		Games.TurnBasedMultiplayer.cancelMatch(mGoogleApiClient, mMatch.getMatchId())
-				.setResultCallback(new ResultCallback<TurnBasedMultiplayer.CancelMatchResult>() {
-					@Override
-					public void onResult(TurnBasedMultiplayer.CancelMatchResult result) {
-						processResult(result);
-					}
-				});
-		isDoingTurn = false;
-		setViewVisibility();
-	}
-
-	// Leave the game during your turn. Note that there is a separate
-	// Games.TurnBasedMultiplayer.leaveMatch() if you want to leave NOT on your turn.
-	public void onLeaveClicked(View view) {
-		showSpinner();
-		String nextParticipantId = getNextParticipantId();
-
-		Games.TurnBasedMultiplayer.leaveMatchDuringTurn(mGoogleApiClient, mMatch.getMatchId(),
-				nextParticipantId).setResultCallback(
-				new ResultCallback<TurnBasedMultiplayer.LeaveMatchResult>() {
-					@Override
-					public void onResult(TurnBasedMultiplayer.LeaveMatchResult result) {
-						processResult(result);
-					}
-				});
-		setViewVisibility();
-	}
-
-	// End turn
-	public void onFinishClicked(View view) {
-		// TODO move to respective game board
-		CrazyEightsGameBoard game = (CrazyEightsGameBoard) mTurnData;
-
-		// if player's hand or draw deck is empty, finish game
-		if (game.currHand.isEmpty() || game.drawDeck.isEmpty()){
-			showSpinner();
-			Games.TurnBasedMultiplayer.finishMatch(mGoogleApiClient, mMatch.getMatchId())
-					.setResultCallback(new ResultCallback<TurnBasedMultiplayer.UpdateMatchResult>() {
-						@Override
-						public void onResult(TurnBasedMultiplayer.UpdateMatchResult result) {
-							processResult(result);
-						}
-					});
-
-			isDoingTurn = false;
-			setViewVisibility();
-			return;
-		}
-
-		showSpinner();
-
-		String nextParticipantId = getNextParticipantId();
-
-		showSpinner();
-
-		Games.TurnBasedMultiplayer.takeTurn(mGoogleApiClient, mMatch.getMatchId(),
-				mTurnData.saveData(), nextParticipantId).setResultCallback(
-				new ResultCallback<TurnBasedMultiplayer.UpdateMatchResult>() {
-					@Override
-					public void onResult(TurnBasedMultiplayer.UpdateMatchResult result) {
-						processResult(result);
-					}
-				});
-
-		mTurnData = null;
-	}
-
 	/*********************************************************************************************/
 
 	// Update the visibility based on what state we're in.
@@ -298,15 +231,15 @@ public class MainActivity extends Activity
 		Button newGameBtn = (Button) findViewById(R.id.newGameButton);
 		Button checkGamesBtn = (Button) findViewById(R.id.checkGamesButton);
 
+		if (signInOutBtn == null)
+			return;
+
 		if (!isSignedIn) {
-			// Show home page with New Game and Check Games disabled
-			findViewById(R.id.menu_layout).setVisibility(View.VISIBLE);
 			signInOutBtn.setText(R.string.sign_in);
 			newGameBtn.setClickable(false);
 			newGameBtn.setBackgroundResource(R.color.grey);
 			checkGamesBtn.setClickable(false);
 			checkGamesBtn.setBackgroundResource(R.color.grey);
-			findViewById(R.id.gameplay_layout).setVisibility(View.GONE);
 
 			if (mAlertDialog != null) {
 				mAlertDialog.dismiss();
@@ -314,18 +247,11 @@ public class MainActivity extends Activity
 			return;
 		}
 
-		if (isDoingTurn) {
-			findViewById(R.id.menu_layout).setVisibility(View.GONE);
-			findViewById(R.id.gameplay_layout).setVisibility(View.VISIBLE);
-		} else {
-			findViewById(R.id.menu_layout).setVisibility(View.VISIBLE);
-			signInOutBtn.setText(R.string.sign_out);
-			newGameBtn.setClickable(true);
-			newGameBtn.setBackgroundResource(R.color.new_game);
-			checkGamesBtn.setClickable(true);
-			checkGamesBtn.setBackgroundResource(R.color.check_games);
-			findViewById(R.id.gameplay_layout).setVisibility(View.GONE);
-		}
+		signInOutBtn.setText(R.string.sign_out);
+		newGameBtn.setClickable(true);
+		newGameBtn.setBackgroundResource(R.color.new_game);
+		checkGamesBtn.setClickable(true);
+		checkGamesBtn.setBackgroundResource(R.color.check_games);
 	}
 
 	// Helpful dialogs
@@ -392,15 +318,7 @@ public class MainActivity extends Activity
 	@Override
 	public void onActivityResult(int request, int response, Intent data) {
 		super.onActivityResult(request, response, data);
-		if (request == RC_CHOOSE_GAME) {
-			mGoogleApiClient.connect();
-			if (response == Activity.RESULT_OK) {
-				mGameType = data.getIntExtra(ChooseCardGame.GAME_TYPE_EXTRA, 0);
-				Intent intent = Games.TurnBasedMultiplayer.getSelectOpponentsIntent(mGoogleApiClient,
-						1, 7, false);
-				startActivityForResult(intent, RC_SELECT_PLAYERS);
-			}
-		} else if (request == RC_SIGN_IN) {
+		if (request == RC_SIGN_IN) {
 			mSignInClicked = false;
 			mResolvingConnectionFailure = false;
 			if (response == Activity.RESULT_OK) {
@@ -408,29 +326,13 @@ public class MainActivity extends Activity
 			} else {
 				BaseGameUtils.showActivityResultError(this, request, response, R.string.signin_other_error);
 			}
-		} else if (request == RC_LOOK_AT_MATCHES) {
-			// Returning from the 'Select Match' dialog
-
+		} else if (request == RC_CHOOSE_GAME) {
 			if (response != Activity.RESULT_OK) {
 				// user canceled
 				return;
 			}
 
-			TurnBasedMatch match = data
-					.getParcelableExtra(Multiplayer.EXTRA_TURN_BASED_MATCH);
-
-			if (match != null) {
-				updateMatch(match);
-			}
-
-			Log.d(TAG, "Match = " + match);
-		} else if (request == RC_SELECT_PLAYERS) {
-			// Returned from 'Select players to Invite' dialog
-
-			if (response != Activity.RESULT_OK) {
-				// user canceled
-				return;
-			}
+			mGameType = data.getIntExtra(ChooseCardGame.EXTRA_GAME_TYPE, 0);
 
 			// get the invitee list
 			final ArrayList<String> invitees = data
@@ -449,6 +351,71 @@ public class MainActivity extends Activity
 						}
 					});
 			showSpinner();
+		} else if (request == RC_PLAY_GAME) {
+			if (response != Activity.RESULT_OK) {
+				Log.d(TAG, "match cancelled");
+				Games.TurnBasedMultiplayer.cancelMatch(mGoogleApiClient, mMatch.getMatchId())
+						.setResultCallback(new ResultCallback<TurnBasedMultiplayer.CancelMatchResult>() {
+							@Override
+							public void onResult(TurnBasedMultiplayer.CancelMatchResult result) {
+								processResult(result);
+							}
+						});
+				return;
+			}
+
+			int action = data.getIntExtra(GameActivity.EXTRA_ACTION, 0);
+			String nextParticipantId;
+
+			switch (action) {
+				case GameActivity.END_TURN:
+					nextParticipantId = getNextParticipantId();
+					Games.TurnBasedMultiplayer.takeTurn(mGoogleApiClient, mMatch.getMatchId(),
+							data.getByteArrayExtra(GameActivity.EXTRA_DATA), nextParticipantId).setResultCallback(
+							new ResultCallback<TurnBasedMultiplayer.UpdateMatchResult>() {
+								@Override
+								public void onResult(TurnBasedMultiplayer.UpdateMatchResult result) {
+									processResult(result);
+								}
+							});
+					break;
+				case GameActivity.GAME_WON:
+					Games.TurnBasedMultiplayer.finishMatch(mGoogleApiClient, mMatch.getMatchId())
+							.setResultCallback(new ResultCallback<TurnBasedMultiplayer.UpdateMatchResult>() {
+								@Override
+								public void onResult(TurnBasedMultiplayer.UpdateMatchResult result) {
+									processResult(result);
+								}
+							});
+					break;
+				case GameActivity.LEAVE:
+					nextParticipantId = getNextParticipantId();
+					Games.TurnBasedMultiplayer.leaveMatchDuringTurn(mGoogleApiClient, mMatch.getMatchId(),
+							nextParticipantId).setResultCallback(
+							new ResultCallback<TurnBasedMultiplayer.LeaveMatchResult>() {
+								@Override
+								public void onResult(TurnBasedMultiplayer.LeaveMatchResult result) {
+									processResult(result);
+								}
+							});
+			}
+			mTurnData = null;
+		} else if (request == RC_LOOK_AT_MATCHES) {
+			// Returning from the 'Select Match' dialog
+
+			if (response != Activity.RESULT_OK) {
+				// user canceled
+				return;
+			}
+
+			TurnBasedMatch match = data
+					.getParcelableExtra(Multiplayer.EXTRA_TURN_BASED_MATCH);
+
+			if (match != null) {
+				updateMatch(match);
+			}
+
+			Log.d(TAG, "Match = " + match);
 		}
 	}
 
@@ -465,11 +432,10 @@ public class MainActivity extends Activity
 		String playerId = Games.Players.getCurrentPlayerId(mGoogleApiClient);
 		String myParticipantId = mMatch.getParticipantId(playerId);
 
-		mTurnData = new CrazyEightsGameBoard(myParticipantId, match.getParticipantIds(), null, this);
-
+		mTurnData = new CrazyEightsGameBoard(myParticipantId, mMatch.getParticipantIds(), null, this);
 		showSpinner();
 
-		Games.TurnBasedMultiplayer.takeTurn(mGoogleApiClient, match.getMatchId(),
+		Games.TurnBasedMultiplayer.takeTurn(mGoogleApiClient, mMatch.getMatchId(),
 				mTurnData.saveData(), myParticipantId).setResultCallback(
 				new ResultCallback<TurnBasedMultiplayer.UpdateMatchResult>() {
 					@Override
@@ -490,7 +456,6 @@ public class MainActivity extends Activity
 					}
 				});
 		mMatch = null;
-		isDoingTurn = false;
 	}
 
 	/**
@@ -547,10 +512,7 @@ public class MainActivity extends Activity
 		// OK, it's active. Check on turn status.
 		switch (turnStatus) {
 			case TurnBasedMatch.MATCH_TURN_STATUS_MY_TURN:
-				String participantId = mMatch.getParticipantId(Games.Players.getCurrentPlayerId(mGoogleApiClient));
-				mTurnData = new CrazyEightsGameBoard(participantId, mMatch.getParticipantIds(), mMatch.getData(), this);
-				isDoingTurn = true;
-				setViewVisibility();
+				playTurn();
 				return;
 			case TurnBasedMatch.MATCH_TURN_STATUS_THEIR_TURN:
 				// Should return results.
@@ -562,8 +524,6 @@ public class MainActivity extends Activity
 		}
 
 		mTurnData = null;
-
-		setViewVisibility();
 	}
 
 	private void processResult(TurnBasedMultiplayer.CancelMatchResult result) {
@@ -572,11 +532,6 @@ public class MainActivity extends Activity
 		if (!checkStatusCode(null, result.getStatus().getStatusCode())) {
 			return;
 		}
-
-		isDoingTurn = false;
-
-		//showWarning("Match",
-		//		"This match is canceled.  All other players will have their game ended.");
 	}
 
 	private void processResult(TurnBasedMultiplayer.InitiateMatchResult result) {
@@ -603,15 +558,12 @@ public class MainActivity extends Activity
 		if (!checkStatusCode(match, result.getStatus().getStatusCode())) {
 			return;
 		}
-		//isDoingTurn = (match.getTurnStatus() == TurnBasedMatch.MATCH_TURN_STATUS_MY_TURN);
 		isDoingTurn = false;
 		showWarning("Left", "You've left this match.");
-
-		setViewVisibility();
 	}
 
 
-	public void processResult(TurnBasedMultiplayer.UpdateMatchResult result) {
+	private void processResult(TurnBasedMultiplayer.UpdateMatchResult result) {
 		TurnBasedMatch match = result.getMatch();
 		dismissSpinner();
 		if (!checkStatusCode(match, result.getStatus().getStatusCode())) {
@@ -621,14 +573,7 @@ public class MainActivity extends Activity
 			askForRematch();
 		}
 
-		isDoingTurn = (match.getTurnStatus() == TurnBasedMatch.MATCH_TURN_STATUS_MY_TURN);
-
-		if (isDoingTurn) {
-			updateMatch(match);
-			return;
-		}
-
-		setViewVisibility();
+		updateMatch(match);
 	}
 
 	public void showErrorMessage(TurnBasedMatch match, int statusCode,
@@ -644,14 +589,6 @@ public class MainActivity extends Activity
 			case GamesStatusCodes.STATUS_OK:
 				return true;
 			case GamesStatusCodes.STATUS_NETWORK_ERROR_OPERATION_DEFERRED:
-				// This is OK; the action is stored by Google Play Services and will
-				// be dealt with later.
-				Toast.makeText(
-						this,
-						"Stored action for later.  (Please remove this toast before release.)",
-						TOAST_DELAY).show();
-				// NOTE: This toast is for informative reasons only; please remove
-				// it from your final application.
 				return true;
 			case GamesStatusCodes.STATUS_MULTIPLAYER_ERROR_NOT_TRUSTED_TESTER:
 				showErrorMessage(match, statusCode,

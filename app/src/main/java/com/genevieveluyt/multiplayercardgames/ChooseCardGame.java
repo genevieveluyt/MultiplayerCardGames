@@ -2,31 +2,25 @@ package com.genevieveluyt.multiplayercardgames;
 
 import android.app.Activity;
 
-import android.app.ActionBar;
 import android.app.Fragment;
 import android.app.FragmentManager;
-import android.content.Context;
 import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
 import android.text.Html;
-import android.view.Gravity;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.support.v4.widget.DrawerLayout;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
+
+import com.google.android.gms.games.Games;
 
 public class ChooseCardGame extends Activity
         implements NavigationDrawerFragment.NavigationDrawerCallbacks {
 
     // Use for getting game type from result (data.getExtra(
-    public static final String GAME_TYPE_EXTRA = "gameType";
+    public static final String EXTRA_GAME_TYPE = "gameType";
 
     /**
      * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
@@ -35,11 +29,6 @@ public class ChooseCardGame extends Activity
 
     private static int selectedPosition;
 
-    /**
-     * Used to store the last screen title. For use in {restoreActionBar()}.
-     */
-    //private CharSequence mTitle;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -47,7 +36,6 @@ public class ChooseCardGame extends Activity
 
         mNavigationDrawerFragment = (NavigationDrawerFragment)
                 getFragmentManager().findFragmentById(R.id.navigation_drawer);
-        //mTitle = getTitle();
 
         // Set up the drawer.
         mNavigationDrawerFragment.setUp(
@@ -66,30 +54,26 @@ public class ChooseCardGame extends Activity
                 .commit();
     }
 
-    /*public void onSectionAttached(int number) {
-        switch (number) {
-            case 1:
-                mTitle = getString(R.string.title_section1);
-                break;
-            case 2:
-                mTitle = getString(R.string.title_section2);
-                break;
-            case 3:
-                mTitle = getString(R.string.title_section3);
-                break;
-        }
-    }*/
-
-    /*public void restoreActionBar() {
-        ActionBar actionBar = getActionBar();
-        actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
-        actionBar.setDisplayShowTitleEnabled(true);
-        actionBar.setTitle(mTitle);
-    }*/
-
     public void onPlayClicked(View view) {
-        setResult(RESULT_OK, new Intent().putExtra(GAME_TYPE_EXTRA, selectedPosition));
-        finish();
+        Intent intent = Games.TurnBasedMultiplayer.getSelectOpponentsIntent(MainActivity.mGoogleApiClient,
+                1, 7, false);
+        startActivityForResult(intent, MainActivity.RC_SELECT_PLAYERS);
+    }
+
+    @Override
+    public void onActivityResult(int request, int response, Intent data) {
+        super.onActivityResult(request, response, data);
+        if (request == MainActivity.RC_SELECT_PLAYERS) {
+            // Returned from 'Select players to Invite' dialog
+
+            if (response != Activity.RESULT_OK) {
+                // user canceled
+                return;
+            }
+
+            setResult(Activity.RESULT_OK, data.putExtra(EXTRA_GAME_TYPE, selectedPosition));
+            finish();
+        }
     }
 
     /**
@@ -144,13 +128,6 @@ public class ChooseCardGame extends Activity
 
             return rootView;
         }
-
-        /*@Override
-        public void onAttach(Activity activity) {
-            super.onAttach(activity);
-            ((ChooseCardGame) activity).onSectionAttached(
-                    getArguments().getInt(ARG_SECTION_NUMBER));
-        }*/
     }
 
 }

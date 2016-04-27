@@ -3,130 +3,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" >
 
-	<!-- gampeplay layout -->
-    <LinearLayout
-        android:id="@+id/gameplay_layout"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:paddingBottom="@dimen/activity_vertical_margin"
-        android:paddingLeft="@dimen/activity_horizontal_margin"
-        android:paddingRight="@dimen/activity_horizontal_margin"
-        android:paddingTop="@dimen/activity_vertical_margin"
-        android:visibility="visible"
-        tools:context=".MainActivity"
-        android:background="@drawable/table_background" >
-
-	    <HorizontalScrollView
-		    android:id="@+id/opponent_scroll_layout"
-		    android:layout_width="match_parent"
-		    android:layout_height="0dp"
-		    android:gravity="center_horizontal"
-		    android:layout_weight="2">
-	    </HorizontalScrollView>
-
-		<TextView
-			android:layout_width="wrap_content"
-			android:layout_height="0dp"
-			android:textAppearance="?android:attr/textAppearanceLarge"
-			android:text=""
-			android:id="@+id/must_play_suit"
-			android:layout_gravity="center_horizontal"
-			android:layout_weight="1" />
-
-        <LinearLayout
-	        android:id="@+id/deck_layout"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="3"
-            android:gravity="center"
-            android:orientation="horizontal">
-
-            <ImageButton
-	            android:id="@+id/drawdeck_view"
-	            android:layout_width="wrap_content"
-	            android:layout_height="80dp"
-	            android:layout_marginRight="10dp"
-	            android:layout_marginEnd="10dp"
-	            android:adjustViewBounds="true"
-	            android:scaleType="fitCenter"
-                android:background="@android:color/transparent"
-	            android:visibility="visible"
-                android:clickable="true"
-                android:src="@drawable/card_back"
-                />
-
-	        <ImageButton
-		        android:id="@+id/playdeck_view"
-		        android:layout_width="wrap_content"
-		        android:layout_height="80dp"
-		        android:adjustViewBounds="true"
-		        android:scaleType="fitCenter"
-		        android:background="@android:color/transparent"
-		        android:visibility="invisible"
-		        android:clickable="true"
-		        />
-
-        </LinearLayout>
-
-	    <HorizontalScrollView
-		    android:id="@+id/hand_scroll_layout"
-		    android:layout_width="match_parent"
-		    android:layout_height="0dp"
-		    android:layout_weight="2" >
-
-		    <LinearLayout
-			    android:id="@+id/hand_layout"
-			    android:layout_width="wrap_content"
-			    android:layout_height="match_parent"
-			    android:clipToPadding="false"
-			    android:paddingLeft="40dp"
-			    android:paddingStart="40dp"
-			    android:paddingRight="50dp"
-			    android:paddingEnd="50dp"
-			    android:orientation="horizontal"
-			    />
-
-	    </HorizontalScrollView>
-
-		<!-- menu -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
-            android:gravity="center"
-            android:orientation="horizontal"
-            android:visibility="visible"
-            android:id="@+id/linearLayout">
-
-            <Button
-                android:id="@+id/cancel_button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:onClick="onCancelClicked"
-                android:text="@string/cancel"
-                android:textAppearance="@style/HelpText.Heading"
-                 />
-
-            <Button
-                android:id="@+id/leave_button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:onClick="onLeaveClicked"
-                android:text="@string/leave"
-                android:textAppearance="@style/HelpText.Heading"
-                tools:ignore="ButtonStyle" />
-
-            <Button
-                android:id="@+id/finish_button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:onClick="onFinishClicked"
-                android:text="@string/finish"
-                android:textAppearance="@style/HelpText.Heading"
-                tools:ignore="ButtonStyle" />
-        </LinearLayout>
-    </LinearLayout>
 
 	<!-- menu layout -->
     <RelativeLayout
@@ -136,7 +12,7 @@
         android:layout_centerHorizontal="true"
         android:layout_centerVertical="true"
         android:orientation="vertical"
-        android:visibility="invisible"
+        android:visibility="visible"
         tools:context=".MainActivity" >
 
         <LinearLayout

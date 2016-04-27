@@ -122,7 +122,7 @@ public class NavigationDrawerFragment extends Fragment
             mDrawerLayout.openDrawer(mFragmentContainerView);
         }
 
-        mDrawerLayout.setDrawerListener(this);
+        mDrawerLayout.addDrawerListener(this);
     }
 
     private void selectItem(int position) {

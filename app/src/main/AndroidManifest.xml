@@ -28,8 +28,18 @@
         <activity
             android:name=".ChooseCardGame"
             android:label="@string/title_activity_choose_card_game"
-            android:screenOrientation="portrait"
-            android:parentActivityName=".MainActivity">
+            android:parentActivityName=".MainActivity"
+            android:screenOrientation="portrait">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.genevieveluyt.multiplayercardgames.MainActivity" />
+        </activity>
+        <activity
+            android:name=".GameActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/title_activity_game"
+            android:parentActivityName=".MainActivity"
+            android:theme="@style/FullscreenTheme">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.genevieveluyt.multiplayercardgames.MainActivity" />

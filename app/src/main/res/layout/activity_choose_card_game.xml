@@ -14,6 +14,22 @@
         android:layout_height="match_parent" >
     </FrameLayout>
 
+    <!-- progress layout -->
+    <RelativeLayout
+        android:id="@+id/progressLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#AAAAAAAA"
+        android:visibility="gone" >
+
+        <ProgressBar
+            android:id="@+id/progress_dialog"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true" />
+    </RelativeLayout>
+
     <!-- The drawer is given a fixed width in dp and extends the full height of
          the container. -->
     <fragment
@@ -23,5 +39,7 @@
         android:layout_height="match_parent"
         android:layout_gravity="start"
         tools:layout="@layout/drawer_choose_card_game" />
+
+
 
 </android.support.v4.widget.DrawerLayout>
