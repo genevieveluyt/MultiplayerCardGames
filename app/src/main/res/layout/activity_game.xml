@@ -99,7 +99,7 @@
             android:gravity="center"
             android:orientation="horizontal"
             android:visibility="visible"
-            android:background="@color/in_game_menu_bg">
+            android:background="@color/in_game_menu_bg" >
 
             <Button
                 android:id="@+id/cancel_button"
@@ -109,8 +109,7 @@
                 android:onClick="onCancelClicked"
                 android:text="@string/cancel"
                 android:textColor="@color/in_game_menu_button_text"
-                style="?metaButtonBarButtonStyle"
-                />
+                android:background="@android:color/transparent" />
 
             <Button
                 android:id="@+id/leave_button"
@@ -120,7 +119,7 @@
                 android:onClick="onLeaveClicked"
                 android:text="@string/leave"
                 android:textColor="@color/in_game_menu_button_text"
-                style="?metaButtonBarButtonStyle" />
+                android:background="@android:color/transparent" />
 
             <Button
                 android:id="@+id/finish_button"
@@ -130,7 +129,7 @@
                 android:onClick="onFinishClicked"
                 android:text="@string/finish"
                 android:textColor="@color/in_game_menu_button_text"
-                style="?metaButtonBarButtonStyle" />
+                android:background="@android:color/transparent" />
         </LinearLayout>
     </LinearLayout>
 

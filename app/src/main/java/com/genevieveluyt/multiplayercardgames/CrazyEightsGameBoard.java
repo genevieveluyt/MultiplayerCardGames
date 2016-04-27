@@ -34,25 +34,25 @@ public class CrazyEightsGameBoard extends GameBoard {
 	static Activity activity;
 
     // Layouts
-	static LinearLayout gameLayout;
-	static LinearLayout handLayout;
-	static HorizontalScrollView oppLayout;   // TODO move to parent class?
-	static TextView mustPlayView;
-	static Button leaveButton;
+	LinearLayout gameLayout;
+	LinearLayout handLayout;
+	HorizontalScrollView oppLayout;   // TODO move to parent class?
+	TextView mustPlayView;
+	static Button finishButton;
 
 	// Game variables
 	//HashMap<String, Hand> hands; in parent class
-	static String currPlayerId;
-	static ArrayList<String> playerIds;
-	static Hand currHand;
-	static Deck drawDeck;
-	static Deck playDeck;
+	String currPlayerId;
+	ArrayList<String> playerIds;
+	Hand currHand;
+	Deck drawDeck;
+	Deck playDeck;
 	static Dialog chooseSuitDialog;
 
 	// Gameplay variables
-	static boolean hasPlayed = false; // current player has placed a card on the play deck
-	static int chosenSuit = 0;		// suit chosen after playing an 8
-	static int mustPlaySuit = 0;	// suit chosen by previous player after playing an 8
+	boolean hasPlayed; 			// current player has placed a card on the play deck
+	static int chosenSuit;		// suit chosen after playing an 8
+	int mustPlaySuit;			// suit chosen by previous player after playing an 8
 
 	View.OnClickListener deckClickListener = new View.OnClickListener() {
 		@Override
@@ -76,9 +76,9 @@ public class CrazyEightsGameBoard extends GameBoard {
 						hasPlayed = true;
 						if (currHand.isEmpty()) {
 							BaseGameUtils.makeSimpleDialog(activity, activity.getString(R.string.you_won)).show();
-							leaveButton.performClick();
+							finishButton.performClick();
 						} else if (playDeck.peek().getRank() == 8) {
-							leaveButton.setClickable(false);
+							finishButton.setClickable(false);
 							chooseSuitDialog.show();
 						}
 					} else if (hasPlayed && playDeck.peek().getRank() == 8)
@@ -102,15 +102,17 @@ public class CrazyEightsGameBoard extends GameBoard {
 		this.handLayout = (LinearLayout) activity.findViewById(R.id.hand_layout);
 		this.oppLayout = (HorizontalScrollView) activity.findViewById(R.id.opponent_scroll_layout); // TODO temp
 		mustPlayView = (TextView) activity.findViewById(R.id.must_play_suit);
-		leaveButton = (Button) activity.findViewById(R.id.leave_button);
+		finishButton = (Button) activity.findViewById(R.id.finish_button);
 		this.activity = activity;
+		hasPlayed = false;
+		chosenSuit = 0;
+		mustPlaySuit = 0;
 		if (data == null)
 			initBoard();
 		else {
 			loadData(data);
 			activateGUI();
 		}
-
 	}
 
 	@Override
@@ -123,9 +125,6 @@ public class CrazyEightsGameBoard extends GameBoard {
 			if (MainActivity.DEBUG) System.out.println(player + " hand: " + hands.get(player));
 		}
 		playDeck.addVirtual(drawDeck.drawVirtual());
-
-		// TODO Make this and opponent_layout.xml dynamic
-
 	}
 
 	/* Data format:
@@ -192,23 +191,10 @@ public class CrazyEightsGameBoard extends GameBoard {
 						chosenSuit = which+1;
 						if (MainActivity.DEBUG)
 							System.out.println("CrazyEightsGameBoard|activateGUI(): chose suit " + Card.suitToString(chosenSuit));
+						finishButton.setClickable(true);
 					}
 				});
 		chooseSuitDialog = builder.create();
-	}
-
-	private static Dialog makeChooseSuitDialog() {
-		android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(activity);
-		builder.setTitle(R.string.choose_suit)
-				.setItems(R.array.suits, new DialogInterface.OnClickListener() {
-					public void onClick(DialogInterface dialog, int which) {
-						chosenSuit = which+1;
-						if (MainActivity.DEBUG)
-							System.out.println("CrazyEightsGameBoard|activateGUI(): chose suit " + Card.suitToString(chosenSuit));
-						leaveButton.setClickable(true);
-					}
-				});
-		return builder.create();
 	}
 
 	// Returns true if there is a valid play without drawing

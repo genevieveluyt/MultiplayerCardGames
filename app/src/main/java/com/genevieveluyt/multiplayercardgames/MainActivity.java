@@ -99,7 +99,6 @@ public class MainActivity extends Activity
 		mGoogleApiClient = new GoogleApiClient.Builder(this)
 				.addConnectionCallbacks(this)
 				.addOnConnectionFailedListener(this)
-				.addApi(Plus.API)
 				.addApi(Games.API)
 				.addScope(Games.SCOPE_GAMES)
 				.build();
@@ -529,9 +528,7 @@ public class MainActivity extends Activity
 	private void processResult(TurnBasedMultiplayer.CancelMatchResult result) {
 		dismissSpinner();
 
-		if (!checkStatusCode(null, result.getStatus().getStatusCode())) {
-			return;
-		}
+		checkStatusCode(null, result.getStatus().getStatusCode());
 	}
 
 	private void processResult(TurnBasedMultiplayer.InitiateMatchResult result) {
@@ -573,7 +570,8 @@ public class MainActivity extends Activity
 			askForRematch();
 		}
 
-		updateMatch(match);
+		if (match.getTurnStatus() == TurnBasedMatch.MATCH_TURN_STATUS_MY_TURN)
+			updateMatch(match);
 	}
 
 	public void showErrorMessage(TurnBasedMatch match, int statusCode,
