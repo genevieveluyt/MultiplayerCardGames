@@ -7,7 +7,10 @@ import android.app.FragmentManager;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.Html;
+import android.util.Log;
+import android.view.GestureDetector;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.support.v4.widget.DrawerLayout;
@@ -25,9 +28,9 @@ public class ChooseCardGame extends Activity
     /**
      * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
      */
-    private NavigationDrawerFragment mNavigationDrawerFragment;
+    static NavigationDrawerFragment mNavigationDrawerFragment;
 
-    private static int selectedPosition;
+    int selectedPosition;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,7 +53,7 @@ public class ChooseCardGame extends Activity
         // update the main content by replacing fragments
         FragmentManager fragmentManager = getFragmentManager();
         fragmentManager.beginTransaction()
-                .replace(R.id.container, PlaceholderFragment.newInstance(position + 1))
+                .replace(R.id.container, GameInfoFragment.newInstance(position))
                 .commit();
     }
 
@@ -79,26 +82,20 @@ public class ChooseCardGame extends Activity
     /**
      * A placeholder fragment containing a simple view.
      */
-    public static class PlaceholderFragment extends Fragment {
-        /**
-         * The fragment argument representing the section number for this
-         * fragment.
-         */
-        //private static final String ARG_SECTION_NUMBER = "section_number";
+    public static class GameInfoFragment extends Fragment {
 
-        public PlaceholderFragment() {
+        private static int position;
+
+        public GameInfoFragment() {
         }
 
         /**
          * Returns a new instance of this fragment for the given section
          * number.
          */
-        public static PlaceholderFragment newInstance(int sectionNumber) {
-            PlaceholderFragment fragment = new PlaceholderFragment();
-            /*Bundle args = new Bundle();
-            args.putInt(ARG_SECTION_NUMBER, sectionNumber);
-            fragment.setArguments(args);*/
-
+        public static GameInfoFragment newInstance(int position) {
+            GameInfoFragment fragment = new GameInfoFragment();
+            fragment.position = position;
             return fragment;
         }
 
@@ -106,17 +103,18 @@ public class ChooseCardGame extends Activity
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
             View rootView = inflater.inflate(R.layout.fragment_choose_card_game, container, false);
+            String [] gameNames = getResources().getStringArray(R.array.game_names_array);
+            String [] gameInfo = getResources().getStringArray(R.array.game_info_array);
             ((TextView) rootView.findViewById(R.id.game_title))
-                    .setText(getResources().getStringArray(R.array.game_names_array)[selectedPosition]);
+                    .setText(gameNames[position]);
             ((TextView) rootView.findViewById(R.id.game_info))
-                    .setText(Html.fromHtml(
-                            getResources().getStringArray(R.array.game_info_array)[selectedPosition]));
+                    .setText(Html.fromHtml(gameInfo[position]));
 
             // hide Play button if on Other Games page
             Button playButton = (Button) rootView.findViewById(R.id.play_button);
             TextView infoView = (TextView) rootView.findViewById(R.id.game_info);
             TextView moreGamesView = (TextView) rootView.findViewById(R.id.more_games);
-            if (selectedPosition == 1) {
+            if (position == gameNames.length-1) {
                 playButton.setVisibility(View.GONE);
                 infoView.setVisibility(View.GONE);
                 moreGamesView.setVisibility(View.VISIBLE);
@@ -125,6 +123,44 @@ public class ChooseCardGame extends Activity
                 infoView.setVisibility(View.VISIBLE);
                 moreGamesView.setVisibility(View.GONE);
             }
+
+            // Enable swiping to switch between game info screens
+            final GestureDetector gesture = new GestureDetector(getActivity(),
+                    new GestureDetector.SimpleOnGestureListener() {
+                        @Override
+                        public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX,
+                                               float velocityY) {
+                            final int numOptions = getResources().getStringArray(R.array.game_names_array).length-1;
+                            final int SWIPE_MIN_DISTANCE = 120;
+                            final int SWIPE_MAX_OFF_PATH = 250;
+                            final int SWIPE_THRESHOLD_VELOCITY = 200;
+                            try {
+                                if (Math.abs(e1.getY() - e2.getY()) > SWIPE_MAX_OFF_PATH)
+                                    return false;
+                                // if swipe right to left
+                                if (e1.getX() - e2.getX() > SWIPE_MIN_DISTANCE
+                                        && Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) {
+                                    if (position < numOptions)
+                                        mNavigationDrawerFragment.selectItem(position + 1);
+                                } // if swipe left to right
+                                else if (e2.getX() - e1.getX() > SWIPE_MIN_DISTANCE
+                                        && Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) {
+                                    if (position > 0)
+                                        mNavigationDrawerFragment.selectItem(position - 1);
+                                }
+                            } catch (Exception e) {
+                                Log.d(MainActivity.TAG, e.toString());
+                            }
+                            return super.onFling(e1, e2, velocityX, velocityY);
+                        }
+                    });
+
+            rootView.setOnTouchListener(new View.OnTouchListener() {
+                @Override
+                public boolean onTouch(View v, MotionEvent event) {
+                    return gesture.onTouchEvent(event);
+                }
+            });
 
             return rootView;
         }

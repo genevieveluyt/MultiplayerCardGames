@@ -12,10 +12,13 @@ import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.util.Log;
+import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -30,7 +33,7 @@ import android.widget.Toast;
  * design guidelines</a> for a complete explanation of the behaviors implemented here.
  */
 public class NavigationDrawerFragment extends Fragment
-    implements DrawerLayout.DrawerListener {
+    implements DrawerLayout.DrawerListener  {
 
     /**
      * Remember the position of the selected item.
@@ -91,10 +94,9 @@ public class NavigationDrawerFragment extends Fragment
         mDrawerListView.setAdapter(new ArrayAdapter<String>(
                 getActivity(),
                 R.layout.drawer_list_item,
-                //android.R.layout.simple_list_item_activated_1,
-                //android.R.id.text1,
                 getResources().getStringArray(R.array.game_names_array)));
         mDrawerListView.setItemChecked(mCurrentSelectedPosition, true);
+
         return mDrawerListView;
     }
 
@@ -125,7 +127,7 @@ public class NavigationDrawerFragment extends Fragment
         mDrawerLayout.addDrawerListener(this);
     }
 
-    private void selectItem(int position) {
+    void selectItem(int position) {
         mCurrentSelectedPosition = position;
         if (mDrawerListView != null) {
             mDrawerListView.setItemChecked(position, true);

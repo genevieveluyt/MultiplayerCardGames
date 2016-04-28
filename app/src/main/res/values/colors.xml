@@ -14,7 +14,9 @@
     <color name="new_game">@color/blue</color>
     <color name="check_games">@color/green</color>
     <color name="sign_in_out">@color/teal</color>
-    <color name="drawer_bg">@color/almost_black</color>
+    <color name="drawer_bg">@color/white</color>
+    <color name="drawer_bg_active">@color/grey</color>
+    <color name="drawer_text">@color/black</color>
     <color name="in_game_menu_bg">@color/black_overlay</color>
     <color name="in_game_menu_button_text">@color/white</color>
 
