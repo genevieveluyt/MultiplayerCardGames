@@ -18,22 +18,23 @@
         tools:context=".MainActivity"
         android:background="@drawable/table_background" >
 
+        <TextView
+            android:id="@+id/game_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="@style/Heading"
+            android:text="Game Name"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="@dimen/margin_large"
+            android:layout_marginBottom="@dimen/margin_medium"/>
+
         <HorizontalScrollView
             android:id="@+id/opponent_scroll_layout"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:gravity="center_horizontal"
-            android:layout_weight="2">
+            android:layout_weight="3">
         </HorizontalScrollView>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="0dp"
-            android:textAppearance="?android:attr/textAppearanceLarge"
-            android:text=""
-            android:id="@+id/must_play_suit"
-            android:layout_gravity="center_horizontal"
-            android:layout_weight="1" />
 
         <LinearLayout
             android:id="@+id/deck_layout"
@@ -46,9 +47,11 @@
             <ImageButton
                 android:id="@+id/drawdeck_view"
                 android:layout_width="wrap_content"
-                android:layout_height="80dp"
-                android:layout_marginRight="10dp"
-                android:layout_marginEnd="10dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_medium"
+                android:layout_marginBottom="@dimen/margin_large"
+                android:layout_marginRight="@dimen/margin_large"
+                android:layout_marginEnd="@dimen/margin_large"
                 android:adjustViewBounds="true"
                 android:scaleType="fitCenter"
                 android:background="@android:color/transparent"
@@ -60,7 +63,9 @@
             <ImageButton
                 android:id="@+id/playdeck_view"
                 android:layout_width="wrap_content"
-                android:layout_height="80dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_medium"
+                android:layout_marginBottom="@dimen/margin_large"
                 android:adjustViewBounds="true"
                 android:scaleType="fitCenter"
                 android:background="@android:color/transparent"
@@ -74,7 +79,7 @@
             android:id="@+id/hand_scroll_layout"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="2" >
+            android:layout_weight="3" >
 
             <LinearLayout
                 android:id="@+id/hand_layout"
@@ -101,11 +106,21 @@
             android:visibility="visible"
             android:background="@color/in_game_menu_bg" >
 
+            <ImageButton
+                android:id="@+id/hint_button"
+                android:layout_width="0dp"
+                android:layout_height="30dp"
+                android:layout_weight="1"
+                android:src="@drawable/ic_action_help"
+                android:background="@android:color/transparent"
+                android:scaleType="centerInside"
+                android:adjustViewBounds="false" />
+
             <Button
                 android:id="@+id/cancel_button"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
+                android:layout_weight="2"
                 android:text="@string/cancel"
                 android:textColor="@color/in_game_menu_button_text"
                 android:background="@android:color/transparent" />
@@ -114,7 +129,7 @@
                 android:id="@+id/end_turn_button"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
+                android:layout_weight="2"
                 android:text="@string/end_turn"
                 android:textColor="@color/in_game_menu_button_text"
                 android:background="@android:color/transparent" />

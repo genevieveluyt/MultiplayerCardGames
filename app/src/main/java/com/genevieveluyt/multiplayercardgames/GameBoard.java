@@ -35,6 +35,10 @@ public abstract class GameBoard {
 
 	public abstract int getGameType();
 
+	public static String getGameName(Activity activity, int gameId) {
+		return activity.getResources().getStringArray(R.array.game_names_array)[gameId];
+	}
+
 	public static String getNextParticipant(int turnStyle, ArrayList<String> participantIds, String currParticipantId) {
 		String nextParticipant = null;
 
