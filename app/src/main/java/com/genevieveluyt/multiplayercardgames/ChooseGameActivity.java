@@ -19,7 +19,7 @@ import android.widget.TextView;
 
 import com.google.android.gms.games.Games;
 
-public class ChooseCardGame extends Activity
+public class ChooseGameActivity extends Activity
         implements NavigationDrawerFragment.NavigationDrawerCallbacks {
 
     // Use for getting game type from result (data.getExtra(

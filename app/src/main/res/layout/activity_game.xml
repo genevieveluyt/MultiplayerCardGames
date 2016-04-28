@@ -112,22 +112,12 @@
                 android:background="@android:color/transparent" />
 
             <Button
-                android:id="@+id/leave_button"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:onClick="onLeaveClicked"
-                android:text="@string/leave"
-                android:textColor="@color/in_game_menu_button_text"
-                android:background="@android:color/transparent" />
-
-            <Button
                 android:id="@+id/finish_button"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:onClick="onFinishClicked"
-                android:text="@string/finish"
+                android:onClick="onEndTurnClicked"
+                android:text="@string/end_turn"
                 android:textColor="@color/in_game_menu_button_text"
                 android:background="@android:color/transparent" />
         </LinearLayout>

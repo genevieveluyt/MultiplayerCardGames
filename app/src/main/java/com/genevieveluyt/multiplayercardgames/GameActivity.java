@@ -20,6 +20,7 @@ public class GameActivity extends Activity {
     public static final int LEAVE = 100;
     public static final int END_TURN = 101;
     public static final int GAME_WON = 102;
+    public static final int CANCEL = 103;
 
     public GameBoard mTurnData;
 
@@ -39,21 +40,12 @@ public class GameActivity extends Activity {
 
     // Cancel the game.
     public void onCancelClicked(View view) {
-        setResult(RESULT_CANCELED);
-        finish();
-    }
-
-    // Leave the game during your turn. Note that there is a separate
-    // Games.TurnBasedMultiplayer.leaveMatch() if you want to leave NOT on your turn.
-    public void onLeaveClicked(View view) {
-        setResult(Activity.RESULT_OK, (new Intent()).putExtra(EXTRA_ACTION, LEAVE));
-
-
+        setResult(Activity.RESULT_OK, (new Intent()).putExtra(EXTRA_ACTION, CANCEL));
         finish();
     }
 
     // End turn
-    public void onFinishClicked(View view) {
+    public void onEndTurnClicked(View view) {
         // TODO move to respective game board
         CrazyEightsGameBoard game = (CrazyEightsGameBoard) mTurnData;
 
@@ -70,8 +62,4 @@ public class GameActivity extends Activity {
 
         finish();
     }
-
-    /*********************************************************************************************/
-
-
 }

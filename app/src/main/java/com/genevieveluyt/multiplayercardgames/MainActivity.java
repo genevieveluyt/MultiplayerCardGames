@@ -27,18 +27,14 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.Scopes;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
-import com.google.android.gms.common.api.Scope;
-import com.google.android.gms.games.Game;
 import com.google.android.gms.games.Games;
 import com.google.android.gms.games.GamesStatusCodes;
 import com.google.android.gms.games.multiplayer.Multiplayer;
 import com.google.android.gms.games.multiplayer.turnbased.TurnBasedMatch;
 import com.google.android.gms.games.multiplayer.turnbased.TurnBasedMatchConfig;
 import com.google.android.gms.games.multiplayer.turnbased.TurnBasedMultiplayer;
-import com.google.android.gms.plus.Plus;
 
 import java.util.ArrayList;
 
@@ -190,7 +186,7 @@ public class MainActivity extends Activity
 	// Open the create-game UI. You will get back an onActivityResult
 	// and figure out what to do.
 	public void onNewGameClicked(View view) {
-		Intent intent = new Intent(this, ChooseCardGame.class);
+		Intent intent = new Intent(this, ChooseGameActivity.class);
 		startActivityForResult(intent, RC_CHOOSE_GAME);
 	}
 
@@ -331,7 +327,7 @@ public class MainActivity extends Activity
 				return;
 			}
 
-			mGameType = data.getIntExtra(ChooseCardGame.EXTRA_GAME_TYPE, 0);
+			mGameType = data.getIntExtra(ChooseGameActivity.EXTRA_GAME_TYPE, 0);
 
 			// get the invitee list
 			final ArrayList<String> invitees = data
@@ -352,14 +348,7 @@ public class MainActivity extends Activity
 			showSpinner();
 		} else if (request == RC_PLAY_GAME) {
 			if (response != Activity.RESULT_OK) {
-				Log.d(TAG, "match cancelled");
-				Games.TurnBasedMultiplayer.cancelMatch(mGoogleApiClient, mMatch.getMatchId())
-						.setResultCallback(new ResultCallback<TurnBasedMultiplayer.CancelMatchResult>() {
-							@Override
-							public void onResult(TurnBasedMultiplayer.CancelMatchResult result) {
-								processResult(result);
-							}
-						});
+				mTurnData = null;
 				return;
 			}
 
@@ -397,6 +386,16 @@ public class MainActivity extends Activity
 									processResult(result);
 								}
 							});
+					break;
+				case GameActivity.CANCEL:
+					Games.TurnBasedMultiplayer.cancelMatch(mGoogleApiClient, mMatch.getMatchId())
+							.setResultCallback(new ResultCallback<TurnBasedMultiplayer.CancelMatchResult>() {
+								@Override
+								public void onResult(TurnBasedMultiplayer.CancelMatchResult result) {
+									processResult(result);
+								}
+							});
+
 			}
 			mTurnData = null;
 		} else if (request == RC_LOOK_AT_MATCHES) {

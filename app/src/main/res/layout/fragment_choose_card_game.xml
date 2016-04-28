@@ -10,7 +10,7 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        tools:context=".ChooseCardGame$GameInfoFragment">
+        tools:context=".ChooseGameActivity$GameInfoFragment">
 
         <TextView
             android:id="@+id/game_title"

@@ -26,8 +26,8 @@
             android:value="@string/app_id" />
 
         <activity
-            android:name=".ChooseCardGame"
-            android:label="@string/title_activity_choose_card_game"
+            android:name=".ChooseGameActivity"
+            android:label="@string/title_activity_choose_game"
             android:parentActivityName=".MainActivity"
             android:screenOrientation="portrait">
             <meta-data
