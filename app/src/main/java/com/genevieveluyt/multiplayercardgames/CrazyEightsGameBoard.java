@@ -69,7 +69,7 @@ public class CrazyEightsGameBoard extends GameBoard {
 		this.handLayout = (LinearLayout) activity.findViewById(R.id.hand_layout);
 		this.oppLayout = (HorizontalScrollView) activity.findViewById(R.id.opponent_scroll_layout); // TODO temp
 		mustPlayView = (TextView) activity.findViewById(R.id.must_play_suit);
-		this.activity = activity;
+		CrazyEightsGameBoard.activity = activity;
 		hasPlayed = false;
 		chosenSuit = 0;
 		mustPlaySuit = 0;
@@ -116,7 +116,6 @@ public class CrazyEightsGameBoard extends GameBoard {
 	@Override
 	public void loadData(byte[] data) {
 		if (MainActivity.DEBUG) System.out.println("CrazyEightsGameBoard|loadData(byte[]): Loading game data");
-		handLayout.removeAllViews();
         String dataStr = new String(data, Charset.forName("UTF-8"));
         String[] dataArr = dataStr.split(String.valueOf(separator));
         drawDeck = new Deck(dataArr[1], false, (ImageView) gameLayout.findViewById(R.id.drawdeck_view));
