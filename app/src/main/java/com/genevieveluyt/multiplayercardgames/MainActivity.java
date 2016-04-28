@@ -457,7 +457,7 @@ public class MainActivity extends Activity
 
 		ArrayList<String> participantIds = mMatch.getParticipantIds();
 
-		return participantIds.get((participantIds.indexOf(myParticipantId) + 1) % participantIds.size());
+		return GameBoard.getNextParticipant(GameBoard.ROUND_ROBIN, participantIds, myParticipantId);
 	}
 
 	// This is the main function that gets called when players choose a match
