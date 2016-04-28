@@ -1,5 +1,9 @@
 package com.genevieveluyt.multiplayercardgames;
 
+import android.app.Activity;
+import android.app.Dialog;
+import android.content.DialogInterface;
+
 import java.util.HashMap;
 
 /**
@@ -26,4 +30,25 @@ public abstract class GameBoard {
 	public abstract void loadData(byte[] data);
 
 	public abstract int getGameType();
+
+	public static Dialog makeYouWonDialog(Activity activity, final GameCallbacks mCallbacks) {
+		android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(activity);
+		builder.setMessage(R.string.you_won)
+				.setNeutralButton(R.string.ok, new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						mCallbacks.onGameWon();
+					}
+				});
+		return builder.create();
+	}
+
+	public static interface GameCallbacks {
+
+		void onTurnEnded();
+
+		void onGameCancelled();
+
+		void onGameWon();
+	}
 }

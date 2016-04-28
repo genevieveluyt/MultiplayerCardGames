@@ -10,7 +10,8 @@ import com.google.android.gms.games.Games;
 import com.google.android.gms.games.multiplayer.turnbased.TurnBasedMatch;
 import com.google.android.gms.games.multiplayer.turnbased.TurnBasedMultiplayer;
 
-public class GameActivity extends Activity {
+public class GameActivity extends Activity
+    implements GameBoard.GameCallbacks {
 
     public static final String EXTRA_CURR_PARTICIPANT_ID = "currParticipantId";
     public static final String EXTRA_PARTICIPANT_IDS = "participantIds";
@@ -39,27 +40,26 @@ public class GameActivity extends Activity {
     /****************************** In-Game Options **********************************************/
 
     // Cancel the game.
-    public void onCancelClicked(View view) {
+    public void onGameCancelled() {
         setResult(Activity.RESULT_OK, (new Intent()).putExtra(EXTRA_ACTION, CANCEL));
         finish();
     }
 
     // End turn
-    public void onEndTurnClicked(View view) {
-        // TODO move to respective game board
+    public void onTurnEnded() {
         CrazyEightsGameBoard game = (CrazyEightsGameBoard) mTurnData;
 
         Intent intent = new Intent();
-
-        // if game not over
-        if (!(game.currHand.isEmpty() || game.drawDeck.isEmpty())) {
             intent.putExtra(EXTRA_ACTION, END_TURN);
             intent.putExtra(EXTRA_DATA, mTurnData.saveData());
-        } else
-            intent.putExtra(EXTRA_ACTION, GAME_WON);
 
         setResult(Activity.RESULT_OK, intent);
 
+        finish();
+    }
+
+    public void onGameWon() {
+        setResult(Activity.RESULT_OK, (new Intent()).putExtra(EXTRA_ACTION, GAME_WON));
         finish();
     }
 }

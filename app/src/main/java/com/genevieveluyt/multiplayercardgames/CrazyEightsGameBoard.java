@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.view.View;
-import android.widget.Button;
 import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -29,7 +28,7 @@ import java.util.ArrayList;
  */
 public class CrazyEightsGameBoard extends GameBoard {
 
-	private static final int STARTING_HAND = 7;
+	private static final int STARTING_HAND = 8;
 
 	static Activity activity;
 
@@ -38,7 +37,6 @@ public class CrazyEightsGameBoard extends GameBoard {
 	LinearLayout handLayout;
 	HorizontalScrollView oppLayout;   // TODO move to parent class?
 	TextView mustPlayView;
-	static Button finishButton;
 
 	// Game variables
 	//HashMap<String, Hand> hands; in parent class
@@ -48,44 +46,13 @@ public class CrazyEightsGameBoard extends GameBoard {
 	Deck drawDeck;
 	Deck playDeck;
 	static Dialog chooseSuitDialog;
+	static Dialog youWonDialog;
+	GameCallbacks mCallbacks;
 
 	// Gameplay variables
 	boolean hasPlayed; 			// current player has placed a card on the play deck
 	static int chosenSuit;		// suit chosen after playing an 8
 	int mustPlaySuit;			// suit chosen by previous player after playing an 8
-
-	View.OnClickListener deckClickListener = new View.OnClickListener() {
-		@Override
-		public void onClick(View v) {
-			switch (v.getId()){
-				case R.id.drawdeck_view:
-					currHand.draw(drawDeck);
-					if (drawDeck.isEmpty()) {
-						// if ran out of cards to draw, reshuffle the play deck and use as draw deck
-						Card topCard = playDeck.drawVirtual();
-						drawDeck = playDeck;
-						drawDeck.reshuffle();
-						activity.findViewById(R.id.drawdeck_view).setVisibility(View.VISIBLE);
-						playDeck = new Deck(Deck.EMPTY, true, (ImageView) activity.findViewById(R.id.playdeck_view));
-						playDeck.add(topCard);
-					}
-					break;
-				case R.id.playdeck_view:
-					if (validPlay()) {
-						currHand.playSelected(playDeck);
-						hasPlayed = true;
-						if (currHand.isEmpty()) {
-							BaseGameUtils.makeSimpleDialog(activity, activity.getString(R.string.you_won)).show();
-							finishButton.performClick();
-						} else if (playDeck.peek().getRank() == 8) {
-							finishButton.setClickable(false);
-							chooseSuitDialog.show();
-						}
-					} else if (hasPlayed && playDeck.peek().getRank() == 8)
-						chooseSuitDialog.show();
-			}
-		}
-	};
 
 	View.OnClickListener handClickListener = new View.OnClickListener() {
 		@Override
@@ -102,7 +69,6 @@ public class CrazyEightsGameBoard extends GameBoard {
 		this.handLayout = (LinearLayout) activity.findViewById(R.id.hand_layout);
 		this.oppLayout = (HorizontalScrollView) activity.findViewById(R.id.opponent_scroll_layout); // TODO temp
 		mustPlayView = (TextView) activity.findViewById(R.id.must_play_suit);
-		finishButton = (Button) activity.findViewById(R.id.finish_button);
 		this.activity = activity;
 		hasPlayed = false;
 		chosenSuit = 0;
@@ -173,8 +139,60 @@ public class CrazyEightsGameBoard extends GameBoard {
 	}
 
 	private void activateGUI() {
-		gameLayout.findViewById(R.id.drawdeck_view).setOnClickListener(deckClickListener);
-		gameLayout.findViewById(R.id.playdeck_view).setOnClickListener(deckClickListener);
+
+		try {
+			mCallbacks = (GameCallbacks) activity;
+		} catch (ClassCastException e) {
+			throw new ClassCastException("Activity must implement GameCallbacks.");
+		}
+
+		View.OnClickListener gameClickListener = new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				switch (v.getId()){
+					case R.id.drawdeck_view:
+						currHand.draw(drawDeck);
+						if (drawDeck.isEmpty()) { // TODO what if all cards are in players' hands?
+							// if ran out of cards to draw, reshuffle the play deck and use as draw deck
+							Card topCard = playDeck.drawVirtual();
+							drawDeck = playDeck;
+							drawDeck.reshuffle();
+							activity.findViewById(R.id.drawdeck_view).setVisibility(View.VISIBLE);
+							playDeck = new Deck(Deck.EMPTY, true, (ImageView) activity.findViewById(R.id.playdeck_view));
+							playDeck.add(topCard);
+						}
+						break;
+					case R.id.playdeck_view:
+						if (validPlay()) {
+							currHand.playSelected(playDeck);
+							hasPlayed = true;
+							if (currHand.isEmpty()) {
+								youWonDialog.show();
+							} else if (playDeck.peek().getRank() == 8) {
+								chooseSuitDialog.show();
+							}
+						} else if (hasPlayed && playDeck.peek().getRank() == 8)
+							chooseSuitDialog.show();
+						break;
+					case R.id.cancel_button:
+						if (mCallbacks != null)
+							mCallbacks.onGameCancelled();
+						break;
+					case R.id.end_turn_button:
+						if (hasPlayed) {
+							if (playDeck.peek().getRank() == 8 && chosenSuit == 0)
+								chooseSuitDialog.show();
+							else
+								mCallbacks.onTurnEnded();
+						}
+				}
+			}
+		};
+
+		gameLayout.findViewById(R.id.drawdeck_view).setOnClickListener(gameClickListener);
+		gameLayout.findViewById(R.id.playdeck_view).setOnClickListener(gameClickListener);
+		gameLayout.findViewById(R.id.cancel_button).setOnClickListener(gameClickListener);
+		gameLayout.findViewById(R.id.end_turn_button).setOnClickListener(gameClickListener);
 
 		if (mustPlaySuit == 0)
 			mustPlayView.setText("");
@@ -191,10 +209,10 @@ public class CrazyEightsGameBoard extends GameBoard {
 						chosenSuit = which+1;
 						if (MainActivity.DEBUG)
 							System.out.println("CrazyEightsGameBoard|activateGUI(): chose suit " + Card.suitToString(chosenSuit));
-						finishButton.setClickable(true);
 					}
 				});
 		chooseSuitDialog = builder.create();
+		youWonDialog = makeYouWonDialog(activity, mCallbacks);
 	}
 
 	// Returns true if there is a valid play without drawing
@@ -208,9 +226,15 @@ public class CrazyEightsGameBoard extends GameBoard {
 
 	// Returns true if selected cards are a valid play
 	private boolean validPlay() {
-		for (Card card : currHand.getSelected())
+		ArrayList<Card> selected = currHand.getSelected();
+
+		if (selected.isEmpty())
+			return false;
+
+		for (Card card : selected)
 			if (!validPlay(card))
 				return false;
+
 		return true;
 	}
 

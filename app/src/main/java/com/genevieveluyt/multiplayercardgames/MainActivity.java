@@ -58,9 +58,6 @@ public class MainActivity extends Activity
 	// Automatically start the sign-in flow when the Activity starts
 	private boolean mAutoStartSignInFlow = true;
 
-	// Current turn-based match
-	private TurnBasedMatch mTurnBasedMatch;
-
 	private AlertDialog mAlertDialog;
 
 	// For our intents
@@ -73,16 +70,8 @@ public class MainActivity extends Activity
 	// How long to show toasts.
 	final static int TOAST_DELAY = Toast.LENGTH_SHORT;
 
-	// Should I be showing the turn API?
-	public boolean isDoingTurn = false;
-
 	// This is the current match we're in; null if not loaded
 	public TurnBasedMatch mMatch;
-
-	// This is the current match data after being unpersisted.
-	// Do not retain references to match data once you have
-	// taken an action on the match, such as takeTurn()
-	public GameBoard mTurnData;
 
 	public int mGameType;
 
@@ -126,7 +115,7 @@ public class MainActivity extends Activity
 
 		// Retrieve the TurnBasedMatch from the connectionHint
 		if (connectionHint != null) {
-			mTurnBasedMatch = connectionHint.getParcelable(Multiplayer.EXTRA_TURN_BASED_MATCH);
+			TurnBasedMatch mTurnBasedMatch = connectionHint.getParcelable(Multiplayer.EXTRA_TURN_BASED_MATCH);
 
 			if (mTurnBasedMatch != null) {
 				if (mGoogleApiClient == null || !mGoogleApiClient.isConnected()) {
@@ -203,7 +192,6 @@ public class MainActivity extends Activity
 		// If sign-in clicked
 		if (signInOutBtn.getText().equals(getString(R.string.sign_in))) {
 			mSignInClicked = true;
-			mTurnBasedMatch = null;
 			mGoogleApiClient.connect();
 		}
 		// if sign-out clicked
@@ -348,7 +336,6 @@ public class MainActivity extends Activity
 			showSpinner();
 		} else if (request == RC_PLAY_GAME) {
 			if (response != Activity.RESULT_OK) {
-				mTurnData = null;
 				return;
 			}
 
@@ -397,7 +384,6 @@ public class MainActivity extends Activity
 							});
 
 			}
-			mTurnData = null;
 		} else if (request == RC_LOOK_AT_MATCHES) {
 			// Returning from the 'Select Match' dialog
 
@@ -430,7 +416,7 @@ public class MainActivity extends Activity
 		String playerId = Games.Players.getCurrentPlayerId(mGoogleApiClient);
 		String myParticipantId = mMatch.getParticipantId(playerId);
 
-		mTurnData = new CrazyEightsGameBoard(myParticipantId, mMatch.getParticipantIds(), null, this);
+		GameBoard mTurnData = new CrazyEightsGameBoard(myParticipantId, mMatch.getParticipantIds(), null, this);
 		showSpinner();
 
 		Games.TurnBasedMultiplayer.takeTurn(mGoogleApiClient, mMatch.getMatchId(),
@@ -497,14 +483,13 @@ public class MainActivity extends Activity
 				if (turnStatus == TurnBasedMatch.MATCH_TURN_STATUS_COMPLETE) {
 					showWarning(
 							"Complete!",
-							"This game is over; someone finished it, and so did you!  There is nothing to be done.");
-					break;
+							"This game is over");
+					return;
 				}
 
-				// Note that in this state, you must still call "Finish" yourself,
-				// so we allow this to continue.
 				showWarning("Complete!",
-						"This game is over; someone finished it!  You can only finish it now.");
+						"This game is over");
+				return;
 		}
 
 		// OK, it's active. Check on turn status.
@@ -520,8 +505,6 @@ public class MainActivity extends Activity
 				showWarning("Good inititative!",
 						"Still waiting for invitations.\n\nBe patient!");
 		}
-
-		mTurnData = null;
 	}
 
 	private void processResult(TurnBasedMultiplayer.CancelMatchResult result) {
@@ -554,7 +537,6 @@ public class MainActivity extends Activity
 		if (!checkStatusCode(match, result.getStatus().getStatusCode())) {
 			return;
 		}
-		isDoingTurn = false;
 		showWarning("Left", "You've left this match.");
 	}
 

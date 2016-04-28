@@ -106,17 +106,15 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:onClick="onCancelClicked"
                 android:text="@string/cancel"
                 android:textColor="@color/in_game_menu_button_text"
                 android:background="@android:color/transparent" />
 
             <Button
-                android:id="@+id/finish_button"
+                android:id="@+id/end_turn_button"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:onClick="onEndTurnClicked"
                 android:text="@string/end_turn"
                 android:textColor="@color/in_game_menu_button_text"
                 android:background="@android:color/transparent" />
