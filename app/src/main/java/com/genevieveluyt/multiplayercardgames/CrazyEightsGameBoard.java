@@ -96,7 +96,7 @@ public class CrazyEightsGameBoard extends GameBoard {
 	}
 
 	/* Data format:
-		game id | draw deck data | play deck data | chosen suit | playerNames and their hand data
+		game id | draw deck data | play deck data | chosen suit | number of players | player names and their hand data
 	 */
 	@Override
 	public byte[] saveData() {
@@ -105,12 +105,13 @@ public class CrazyEightsGameBoard extends GameBoard {
 		dataStr.append(getGameType()).append(separator)
         .append(drawDeck.getData()).append(separator)
         .append(playDeck.getData()).append(separator)
-		.append(chosenSuit).append(separator);
-        for (String playerId : playerNames) {
-	        dataStr.append(playerId).append(separator)
-            .append(hands.get(playerId).getData())
+		.append(playerNames.size()).append(separator);
+        for (String playerName : playerNames) {
+	        dataStr.append(playerName).append(separator)
+            .append(hands.get(playerName).getData())
             .append(separator);
         }
+		dataStr.append(chosenSuit);
 
         return dataStr.toString().getBytes(Charset.forName("UTF-8"));
 	}
@@ -118,20 +119,25 @@ public class CrazyEightsGameBoard extends GameBoard {
 	@Override
 	public void loadData(byte[] data) {
 		if (MainActivity.DEBUG) System.out.println("CrazyEightsGameBoard|loadData(byte[]): Loading game data");
+
         String dataStr = new String(data, Charset.forName("UTF-8"));
         String[] dataArr = dataStr.split(String.valueOf(separator));
+
         drawDeck = new Deck(dataArr[1], false, (ImageView) gameLayout.findViewById(R.id.drawdeck_view));
         playDeck = new Deck(dataArr[2], true, (ImageView) gameLayout.findViewById(R.id.playdeck_view));
-		mustPlaySuit = Integer.parseInt(dataArr[3]);
-        for (int i = 4; i < dataArr.length; i+=2) {
+
+		int numPlayers = Integer.parseInt(dataArr[3]);
+
+        for (int i = 4; i < 4 + numPlayers*2; i+=2) {
 	        String playerName = dataArr[i];
 	        if (playerName.equals(playerNames.get(currParticipantIndex))) {
 		        currHand = new Hand(dataArr[i+1], handLayout, handClickListener);
 		        hands.put(playerName, currHand);
 	        } else
-		        hands.put(playerName, new Hand(dataArr[i+1]));  // hand data starts after the two decks
+		        hands.put(playerName, new Hand(dataArr[i+1]));
 	        if (MainActivity.DEBUG) System.out.println(playerName + " hand: " + hands.get(playerName));
         }
+		mustPlaySuit = Integer.parseInt(dataArr[4 + numPlayers*2]);
 	}
 
 	@Override
