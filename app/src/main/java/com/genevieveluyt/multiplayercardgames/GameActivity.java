@@ -13,10 +13,12 @@ import com.google.android.gms.games.multiplayer.turnbased.TurnBasedMultiplayer;
 public class GameActivity extends Activity
     implements GameBoard.GameCallbacks {
 
-    public static final String EXTRA_CURR_PARTICIPANT_ID = "currParticipantId";
+    public static final String EXTRA_CURR_PARTICIPANT_INDEX = "currParticipantIndex";
     public static final String EXTRA_PARTICIPANT_IDS = "participantIds";
+    public static final String EXTRA_PLAYER_NAMES = "playerNames";
     public static final String EXTRA_DATA = "data";
     public static final String EXTRA_ACTION = "action";
+    public static final String EXTRA_NEXT_PARTICIPANT = "nextParticipant";
 
     public static final int LEAVE = 100;
     public static final int END_TURN = 101;
@@ -30,8 +32,9 @@ public class GameActivity extends Activity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game);
         Intent intent = getIntent();
-        mTurnData = new CrazyEightsGameBoard(intent.getStringExtra(EXTRA_CURR_PARTICIPANT_ID),
+        mTurnData = new CrazyEightsGameBoard(intent.getIntExtra(EXTRA_CURR_PARTICIPANT_INDEX, 0),
                 intent.getStringArrayListExtra(EXTRA_PARTICIPANT_IDS),
+                intent.getStringArrayListExtra(EXTRA_PLAYER_NAMES),
                 intent.getByteArrayExtra(EXTRA_DATA),
                 this
         );
@@ -50,8 +53,9 @@ public class GameActivity extends Activity
         CrazyEightsGameBoard game = (CrazyEightsGameBoard) mTurnData;
 
         Intent intent = new Intent();
-            intent.putExtra(EXTRA_ACTION, END_TURN);
-            intent.putExtra(EXTRA_DATA, mTurnData.saveData());
+            intent.putExtra(EXTRA_ACTION, END_TURN)
+                    .putExtra(EXTRA_NEXT_PARTICIPANT, game.getNextParticipant())
+                    .putExtra(EXTRA_DATA, mTurnData.saveData());
 
         setResult(Activity.RESULT_OK, intent);
 

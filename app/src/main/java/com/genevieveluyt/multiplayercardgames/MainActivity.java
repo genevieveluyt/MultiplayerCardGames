@@ -163,10 +163,17 @@ public class MainActivity extends Activity
 
 	public void playTurn() {
 		String participantId = mMatch.getParticipantId(Games.Players.getCurrentPlayerId(mGoogleApiClient));
+		ArrayList<String> participantIds = mMatch.getParticipantIds();
+
+		ArrayList<String> playerNames = new ArrayList<>();
+		for (String id : mMatch.getParticipantIds())
+			playerNames.add(mMatch.getParticipant(id).getDisplayName());
+
 		Intent intent = new Intent(this, GameActivity.class);
-		intent.putExtra(GameActivity.EXTRA_CURR_PARTICIPANT_ID, participantId);
-		intent.putExtra(GameActivity.EXTRA_PARTICIPANT_IDS, mMatch.getParticipantIds());
-		intent.putExtra(GameActivity.EXTRA_DATA, mMatch.getData());
+		intent.putExtra(GameActivity.EXTRA_CURR_PARTICIPANT_INDEX, participantIds.indexOf(participantId))
+				.putExtra(GameActivity.EXTRA_PARTICIPANT_IDS, mMatch.getParticipantIds())
+				.putExtra(GameActivity.EXTRA_PLAYER_NAMES, playerNames)
+				.putExtra(GameActivity.EXTRA_DATA, mMatch.getData());
 		startActivityForResult(intent, RC_PLAY_GAME);
 	}
 
@@ -344,7 +351,7 @@ public class MainActivity extends Activity
 
 			switch (action) {
 				case GameActivity.END_TURN:
-					nextParticipantId = getNextParticipantId();
+					nextParticipantId = data.getStringExtra(GameActivity.EXTRA_NEXT_PARTICIPANT);
 					Games.TurnBasedMultiplayer.takeTurn(mGoogleApiClient, mMatch.getMatchId(),
 							data.getByteArrayExtra(GameActivity.EXTRA_DATA), nextParticipantId).setResultCallback(
 							new ResultCallback<TurnBasedMultiplayer.UpdateMatchResult>() {
@@ -359,17 +366,6 @@ public class MainActivity extends Activity
 							.setResultCallback(new ResultCallback<TurnBasedMultiplayer.UpdateMatchResult>() {
 								@Override
 								public void onResult(TurnBasedMultiplayer.UpdateMatchResult result) {
-									processResult(result);
-								}
-							});
-					break;
-				case GameActivity.LEAVE:
-					nextParticipantId = getNextParticipantId();
-					Games.TurnBasedMultiplayer.leaveMatchDuringTurn(mGoogleApiClient, mMatch.getMatchId(),
-							nextParticipantId).setResultCallback(
-							new ResultCallback<TurnBasedMultiplayer.LeaveMatchResult>() {
-								@Override
-								public void onResult(TurnBasedMultiplayer.LeaveMatchResult result) {
 									processResult(result);
 								}
 							});
@@ -416,7 +412,12 @@ public class MainActivity extends Activity
 		String playerId = Games.Players.getCurrentPlayerId(mGoogleApiClient);
 		String myParticipantId = mMatch.getParticipantId(playerId);
 
-		GameBoard mTurnData = new CrazyEightsGameBoard(myParticipantId, mMatch.getParticipantIds(), null, this);
+		ArrayList<String> playerNames = new ArrayList<>();
+		for (String id : mMatch.getParticipantIds())
+			playerNames.add(mMatch.getParticipant(id).getDisplayName());
+
+		GameBoard mTurnData = new CrazyEightsGameBoard(mMatch.getParticipants().indexOf(myParticipantId),
+				mMatch.getParticipantIds(), playerNames, null, this);
 		showSpinner();
 
 		Games.TurnBasedMultiplayer.takeTurn(mGoogleApiClient, mMatch.getMatchId(),
@@ -440,24 +441,6 @@ public class MainActivity extends Activity
 					}
 				});
 		mMatch = null;
-	}
-
-	/**
-	 * Get the next participant. In this function, we assume that we are
-	 * round-robin, with all known players going before all automatch players.
-	 * This is not a requirement; players can go in any order. However, you can
-	 * take turns in any order.
-	 *
-	 * @return participantId of next player, or null if automatching
-	 */
-	public String getNextParticipantId() {
-
-		String playerId = Games.Players.getCurrentPlayerId(mGoogleApiClient);
-		String myParticipantId = mMatch.getParticipantId(playerId);
-
-		ArrayList<String> participantIds = mMatch.getParticipantIds();
-
-		return GameBoard.getNextParticipant(GameBoard.ROUND_ROBIN, participantIds, myParticipantId);
 	}
 
 	// This is the main function that gets called when players choose a match
@@ -528,16 +511,6 @@ public class MainActivity extends Activity
 		}
 
 		startMatch(match);
-	}
-
-
-	private void processResult(TurnBasedMultiplayer.LeaveMatchResult result) {
-		TurnBasedMatch match = result.getMatch();
-		dismissSpinner();
-		if (!checkStatusCode(match, result.getStatus().getStatusCode())) {
-			return;
-		}
-		showWarning("Left", "You've left this match.");
 	}
 
 

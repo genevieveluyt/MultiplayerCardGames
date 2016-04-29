@@ -35,27 +35,31 @@ public abstract class GameBoard {
 
 	public abstract int getGameType();
 
+	public abstract String getGameName();
+
+	public abstract String getNextParticipant();
+
 	public static String getGameName(Activity activity, int gameId) {
 		return activity.getResources().getStringArray(R.array.game_names_array)[gameId];
 	}
 
-	public static String getNextParticipant(int turnStyle, ArrayList<String> participantIds, String currParticipantId) {
+	public static String getNextParticipant(int turnStyle, ArrayList<String> participantIds, int currParticipantIndex) {
 		String nextParticipant = null;
 
 		switch (turnStyle) {
 			case ROUND_ROBIN:
-				nextParticipant = participantIds.get((participantIds.indexOf(currParticipantId) + 1) % participantIds.size());
+				nextParticipant = participantIds.get((currParticipantIndex + 1) % participantIds.size());
 		}
 
 		return nextParticipant;
 	}
 
-	public static String getPreviousParticipant(int turnStyle, ArrayList<String> participantIds, String currParticipantId) {
+	public static String getPreviousParticipant(int turnStyle, ArrayList<String> participantIds, int currParticipantIndex) {
 		String prevParticipant = null;
 
 		switch (turnStyle) {
 			case ROUND_ROBIN:
-				prevParticipant = participantIds.get((participantIds.indexOf(currParticipantId) + participantIds.size() - 1) % participantIds.size());
+				prevParticipant = participantIds.get((currParticipantIndex + participantIds.size() - 1) % participantIds.size());
 		}
 
 		return prevParticipant;

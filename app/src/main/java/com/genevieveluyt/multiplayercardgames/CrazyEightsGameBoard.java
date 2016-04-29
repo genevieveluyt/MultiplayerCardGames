@@ -40,8 +40,9 @@ public class CrazyEightsGameBoard extends GameBoard {
 
 	// Game variables
 	//HashMap<String, Hand> hands; in parent class
-	String currPlayerId;
-	ArrayList<String> playerIds;
+	int currParticipantIndex;		// index of current player in participantIds and playerNames
+	ArrayList<String> participantIds;
+	ArrayList<String> playerNames;
 	Hand currHand;
 	Deck drawDeck;
 	Deck playDeck;
@@ -62,10 +63,11 @@ public class CrazyEightsGameBoard extends GameBoard {
 		}
 	};
 
-	public CrazyEightsGameBoard(String currPlayerId, ArrayList<String> playerIds, byte[] data, Activity activity) {
+	public CrazyEightsGameBoard(int currParticipantIndex, ArrayList<String> participantIds, ArrayList<String> playerNames, byte[] data, Activity activity) {
 		super();
-		this.currPlayerId = currPlayerId;
-		this.playerIds = playerIds;
+		this.currParticipantIndex = currParticipantIndex;
+		this.participantIds = participantIds;
+		this.playerNames = playerNames;
 		this.gameLayout = (LinearLayout) activity.findViewById(R.id.gameplay_layout);
 		this.handLayout = (LinearLayout) activity.findViewById(R.id.hand_layout);
 		this.oppLayout = (HorizontalScrollView) activity.findViewById(R.id.opponent_scroll_layout); // TODO temp
@@ -86,7 +88,7 @@ public class CrazyEightsGameBoard extends GameBoard {
 		if (MainActivity.DEBUG) System.out.println("CrazyEightsGameBoard|initBoard(): Initializing game board");
 		drawDeck = new Deck(Deck.STANDARD);
 		playDeck = new Deck(Deck.EMPTY);
-		for (String player : playerIds) {
+		for (String player : playerNames) {
 			hands.put(player, new Hand(drawDeck, STARTING_HAND));
 			if (MainActivity.DEBUG) System.out.println(player + " hand: " + hands.get(player));
 		}
@@ -94,7 +96,7 @@ public class CrazyEightsGameBoard extends GameBoard {
 	}
 
 	/* Data format:
-		game id | draw deck data | play deck data | chosen suit | playerIds and their hand data
+		game id | draw deck data | play deck data | chosen suit | playerNames and their hand data
 	 */
 	@Override
 	public byte[] saveData() {
@@ -104,7 +106,7 @@ public class CrazyEightsGameBoard extends GameBoard {
         .append(drawDeck.getData()).append(separator)
         .append(playDeck.getData()).append(separator)
 		.append(chosenSuit).append(separator);
-        for (String playerId : playerIds) {
+        for (String playerId : playerNames) {
 	        dataStr.append(playerId).append(separator)
             .append(hands.get(playerId).getData())
             .append(separator);
@@ -122,13 +124,13 @@ public class CrazyEightsGameBoard extends GameBoard {
         playDeck = new Deck(dataArr[2], true, (ImageView) gameLayout.findViewById(R.id.playdeck_view));
 		mustPlaySuit = Integer.parseInt(dataArr[3]);
         for (int i = 4; i < dataArr.length; i+=2) {
-	        String playerId = dataArr[i];
-	        if (playerId.equals(currPlayerId)) {
+	        String playerName = dataArr[i];
+	        if (playerName.equals(playerNames.get(currParticipantIndex))) {
 		        currHand = new Hand(dataArr[i+1], handLayout, handClickListener);
-		        hands.put(playerId, currHand);
+		        hands.put(playerName, currHand);
 	        } else
-		        hands.put(playerId, new Hand(dataArr[i+1]));  // hand data starts after the two decks
-	        if (MainActivity.DEBUG) System.out.println(playerId + " hand: " + hands.get(playerId));
+		        hands.put(playerName, new Hand(dataArr[i+1]));  // hand data starts after the two decks
+	        if (MainActivity.DEBUG) System.out.println(playerName + " hand: " + hands.get(playerName));
         }
 	}
 
@@ -137,7 +139,13 @@ public class CrazyEightsGameBoard extends GameBoard {
 		return GameBoard.CRAZY_EIGHTS;
 	}
 
+	@Override
 	public String getGameName() { return getGameName(activity, getGameType()); }
+
+	@Override
+	public String getNextParticipant() {
+		return GameBoard.getNextParticipant(GameBoard.ROUND_ROBIN, participantIds, currParticipantIndex);
+	}
 
 	private void activateGUI() {
 
