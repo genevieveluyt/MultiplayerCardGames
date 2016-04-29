@@ -199,8 +199,7 @@ public class CrazyEightsGameBoard extends GameBoard {
 						BaseGameUtils.makeSimpleDialog(activity, getGameName(), hint).show();
 						break;
 					case R.id.cancel_button:
-						if (mCallbacks != null)
-							mCallbacks.onGameCancelled();
+						makeCancelDialog(activity, mCallbacks).show();
 						break;
 					case R.id.end_turn_button:
 						if (hasPlayed) {

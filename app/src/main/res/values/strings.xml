@@ -12,9 +12,12 @@
     <string name="new_game">New Game</string>
     <string name="you_won">Congratulations! You won!</string>
     <string name="ok">Ok</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
     <string name="gameplay">Gameplay</string>
     <string name="Play">Play</string>
     <string name="play">play</string>
+    <string name="confirm_cancel">Are you sure you want to cancel this game?</string>
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>

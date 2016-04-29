@@ -77,6 +77,19 @@ public abstract class GameBoard {
 		return builder.create();
 	}
 
+	public static Dialog makeCancelDialog(Activity activity, final GameCallbacks mCallbacks) {
+		android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(activity);
+		builder.setMessage(R.string.confirm_cancel)
+				.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						mCallbacks.onGameCancelled();
+					}
+				})
+				.setNegativeButton(R.string.no, null);
+		return builder.create();
+	}
+
 	public static interface GameCallbacks {
 
 		void onTurnEnded();
