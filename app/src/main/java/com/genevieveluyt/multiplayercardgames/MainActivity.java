@@ -92,6 +92,7 @@ public class MainActivity extends Activity
 	@Override
 	protected void onStart() {
 		super.onStart();
+		updateMenuUI();
 		if (!mGoogleApiClient.isConnected()) {
 			Log.d(TAG, "onStart(): Connecting to Google APIs");
 			mGoogleApiClient.connect();
@@ -127,14 +128,14 @@ public class MainActivity extends Activity
 			}
 		}
 
-		setViewVisibility();
+		updateMenuUI();
 	}
 
 	@Override
 	public void onConnectionSuspended(int i) {
 		Log.d(TAG, "onConnectionSuspended():  Trying to reconnect.");
 		mGoogleApiClient.connect();
-		setViewVisibility();
+		updateMenuUI();
 	}
 
 	/***************** implement GoogleApiClient.OnConnectionFailedListener ***********************/
@@ -158,7 +159,7 @@ public class MainActivity extends Activity
 					getString(R.string.signin_other_error));
 		}
 
-		setViewVisibility();
+		updateMenuUI();
 	}
 
 	public void playTurn() {
@@ -208,21 +209,18 @@ public class MainActivity extends Activity
 			if (mGoogleApiClient.isConnected()) {
 				mGoogleApiClient.disconnect();
 			}
-			setViewVisibility();
+			updateMenuUI();
 		}
 	}
 
 	/*********************************************************************************************/
 
 	// Update the visibility based on what state we're in.
-	public void setViewVisibility() {
+	public void updateMenuUI() {
 		boolean isSignedIn = (mGoogleApiClient != null) && (mGoogleApiClient.isConnected());
 		Button signInOutBtn = (Button) findViewById(R.id.sign_in_out_button);
 		Button newGameBtn = (Button) findViewById(R.id.newGameButton);
 		Button checkGamesBtn = (Button) findViewById(R.id.checkGamesButton);
-
-		if (signInOutBtn == null)
-			return;
 
 		if (!isSignedIn) {
 			signInOutBtn.setText(R.string.sign_in);
