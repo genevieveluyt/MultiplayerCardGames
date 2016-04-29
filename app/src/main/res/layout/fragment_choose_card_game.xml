@@ -12,6 +12,18 @@
         android:layout_height="wrap_content"
         tools:context=".ChooseGameActivity$GameInfoFragment">
 
+        <ImageButton
+            android:layout_width="50dp"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_drawer"
+            android:adjustViewBounds="true"
+            android:scaleType="fitCenter"
+            android:padding="10dp"
+            android:layout_marginTop="@dimen/margin_medium"
+            android:layout_marginLeft="@dimen/margin_medium"
+            android:background="@android:color/transparent"
+            android:onClick="onOpenDrawerClicked"/>
+
         <TextView
             android:id="@+id/game_title"
             android:layout_width="wrap_content"
@@ -31,6 +43,7 @@
             android:layout_alignParentEnd="true"
             android:layout_marginRight="@dimen/margin_medium"
             android:layout_marginTop="60dp"
+            android:background="@color/play_button"
             android:onClick="onPlayClicked"/>
 
         <TextView

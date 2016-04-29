@@ -141,6 +141,10 @@ public class NavigationDrawerFragment extends Fragment
         }
     }
 
+    void openDrawer() {
+        mDrawerLayout.openDrawer(mFragmentContainerView);
+    }
+
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);

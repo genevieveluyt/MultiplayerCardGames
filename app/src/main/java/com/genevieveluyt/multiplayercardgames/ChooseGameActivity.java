@@ -63,6 +63,10 @@ public class ChooseGameActivity extends Activity
         startActivityForResult(intent, MainActivity.RC_SELECT_PLAYERS);
     }
 
+    public void onOpenDrawerClicked(View view) {
+        mNavigationDrawerFragment.openDrawer();
+    }
+
     @Override
     public void onActivityResult(int request, int response, Intent data) {
         super.onActivityResult(request, response, data);
