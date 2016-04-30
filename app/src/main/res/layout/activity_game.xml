@@ -113,8 +113,7 @@
                 android:layout_weight="1"
                 android:src="@drawable/ic_action_help"
                 android:background="@android:color/transparent"
-                android:scaleType="centerInside"
-                android:adjustViewBounds="false" />
+                android:adjustViewBounds="true" />
 
             <Button
                 android:id="@+id/cancel_button"

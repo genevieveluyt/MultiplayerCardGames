@@ -1,26 +1,28 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
                 xmlns:tools="http://schemas.android.com/tools"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" >
+                android:layout_height="match_parent" >
 
-
-	<!-- menu layout -->
-    <RelativeLayout
-        android:id="@+id/menu_layout"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true"
         android:orientation="vertical"
         android:visibility="visible"
         tools:context=".MainActivity" >
 
+		<ImageView
+			android:layout_width="wrap_content"
+			android:layout_height="0dp"
+			android:layout_weight="1"
+			android:paddingLeft="@dimen/margin_medium"
+			android:paddingRight="@dimen/margin_medium"
+			android:src="@drawable/title"
+			/>
+
         <LinearLayout
-            android:id="@+id/secret_layout"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_centerHorizontal="true"
-            android:layout_centerVertical="true"
+            android:layout_height="0dp"
+			android:layout_weight="1"
             android:orientation="vertical"
             android:visibility="visible"
             tools:context=".MainActivity"
@@ -32,9 +34,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="20dp"
                 android:onClick="onNewGameClicked"
-                android:clickable="false"
                 android:text="@string/new_game"
-                android:background="@color/grey"/>
+                android:background="@color/new_game"/>
 
             <Button
                 android:id="@+id/checkGamesButton"
@@ -42,9 +43,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="20dp"
                 android:onClick="onCheckGamesClicked"
-                android:clickable="false"
                 android:text="@string/current_games"
-                android:background="@color/grey"/>
+                android:background="@color/check_games"/>
 
 	        <Button
 		        android:id="@+id/sign_in_out_button"
@@ -56,7 +56,7 @@
 		        android:background="@color/sign_in_out"/>
 
         </LinearLayout>
-    </RelativeLayout>
+    </LinearLayout>
 
 	<!-- progress layout -->
     <RelativeLayout
