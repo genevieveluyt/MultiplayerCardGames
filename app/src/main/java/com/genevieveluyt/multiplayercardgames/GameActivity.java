@@ -3,12 +3,6 @@ package com.genevieveluyt.multiplayercardgames;
 import android.content.Intent;
 import android.os.Bundle;
 import android.app.Activity;
-import android.view.View;
-
-import com.google.android.gms.common.api.ResultCallback;
-import com.google.android.gms.games.Games;
-import com.google.android.gms.games.multiplayer.turnbased.TurnBasedMatch;
-import com.google.android.gms.games.multiplayer.turnbased.TurnBasedMultiplayer;
 
 public class GameActivity extends Activity
     implements GameBoard.GameCallbacks {
@@ -54,7 +48,7 @@ public class GameActivity extends Activity
 
         Intent intent = new Intent();
             intent.putExtra(EXTRA_ACTION, END_TURN)
-                    .putExtra(EXTRA_NEXT_PARTICIPANT, game.getNextParticipant())
+                    .putExtra(EXTRA_NEXT_PARTICIPANT, game.getNextParticipantId())
                     .putExtra(EXTRA_DATA, mTurnData.saveData());
 
         setResult(Activity.RESULT_OK, intent);

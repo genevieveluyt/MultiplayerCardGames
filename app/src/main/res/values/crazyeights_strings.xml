@@ -9,9 +9,8 @@
     <string name="gameid_1_can_play_hint">You can play the same suit or rank, or an 8.</string>
     <string name="gameid.1_cant_play_hint">Draw cards until you can play. You can play the same suit or rank, or an 8.</string>
     <string name="gameid.1_already_played_hint">You can play one card per turn. Draw cards if you like or end the turn.</string>
-    <string name="gameid.1_played_8_hint">Tap on the 8 you played to change the suit you chose. The next player must play this suit. Draw cards if you like or end the turn.</string>
-    <string name="gameid.1_8_was_played">An 8 was played and</string>
-    <string name="chosen">chosen</string>
+    <string name="gameid.1_you_played_8_hint">Tap on the 8 you played to change the suit you chose. The next player must play this suit. Draw cards if you like or end the turn.</string>
+    <string name="gameid.1_8_was_played">played an 8 and chose</string>
 
     <string-array name="suits_array">
         <item>@string/hearts</item>
@@ -19,4 +18,11 @@
         <item>@string/diamonds</item>
         <item>@string/clubs</item>
     </string-array>
+
+    <array name="suits_icons_array">
+        <item>@drawable/suit_hearts</item>
+        <item>@drawable/suit_spades</item>
+        <item>@drawable/suit_diamonds</item>
+        <item>@drawable/suit_clubs</item>
+    </array>
 </resources>

@@ -37,13 +37,13 @@ public abstract class GameBoard {
 
 	public abstract String getGameName();
 
-	public abstract String getNextParticipant();
+	public abstract String getNextParticipantId();
 
 	public static String getGameName(Activity activity, int gameId) {
 		return activity.getResources().getStringArray(R.array.game_names_array)[gameId];
 	}
 
-	public static String getNextParticipant(int turnStyle, ArrayList<String> participantIds, int currParticipantIndex) {
+	public static String getNextParticipantId(int turnStyle, ArrayList<String> participantIds, int currParticipantIndex) {
 		String nextParticipant = null;
 
 		switch (turnStyle) {
@@ -54,7 +54,7 @@ public abstract class GameBoard {
 		return nextParticipant;
 	}
 
-	public static String getPreviousParticipant(int turnStyle, ArrayList<String> participantIds, int currParticipantIndex) {
+	public static String getPreviousParticipantId(int turnStyle, ArrayList<String> participantIds, int currParticipantIndex) {
 		String prevParticipant = null;
 
 		switch (turnStyle) {
@@ -65,12 +65,26 @@ public abstract class GameBoard {
 		return prevParticipant;
 	}
 
-	public static Dialog makeYouWonDialog(Activity activity, final GameCallbacks mCallbacks) {
+	public static String getNextPlayerName(int turnStyle, ArrayList<String> playerNames, int currPlayerIndex) {
+		return getNextParticipantId(turnStyle, playerNames, currPlayerIndex);
+	}
+
+	public static String getPrevPlayerName(int turnStyle, ArrayList<String> playerNames, int currPlayerIndex) {
+		return getPreviousParticipantId(turnStyle, playerNames, currPlayerIndex);
+	}
+
+	public Dialog makeYouWonDialog(Activity activity, final GameCallbacks mCallbacks) {
 		android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(activity);
 		builder.setMessage(R.string.you_won)
 				.setNeutralButton(R.string.ok, new DialogInterface.OnClickListener() {
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
+						dialog.cancel();
+					}
+				})
+				.setOnCancelListener(new DialogInterface.OnCancelListener() {
+					@Override
+					public void onCancel(DialogInterface dialog) {
 						mCallbacks.onGameWon();
 					}
 				});

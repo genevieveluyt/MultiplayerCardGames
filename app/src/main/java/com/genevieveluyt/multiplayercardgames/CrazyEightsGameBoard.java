@@ -3,9 +3,11 @@ package com.genevieveluyt.multiplayercardgames;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.DialogInterface;
+import android.content.res.TypedArray;
 import android.util.Log;
 import android.view.View;
 import android.widget.HorizontalScrollView;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -31,7 +33,7 @@ public class CrazyEightsGameBoard extends GameBoard {
 
 	private static final int STARTING_HAND = 8;
 
-	static Activity activity;
+	Activity activity;
 
     // Layouts
 	LinearLayout gameLayout;
@@ -46,13 +48,14 @@ public class CrazyEightsGameBoard extends GameBoard {
 	Hand currHand;
 	Deck drawDeck;
 	Deck playDeck;
-	static Dialog chooseSuitDialog;
-	static Dialog youWonDialog;
+	Dialog chooseSuitDialog;
+	Dialog youWonDialog;
+	Dialog mustPlaySuitDialog;
 	GameCallbacks mCallbacks;
 
 	// Gameplay variables
 	boolean hasPlayed; 			// current player has placed a card on the play deck
-	static int chosenSuit;		// suit chosen after playing an 8
+	int chosenSuit;		// suit chosen after playing an 8
 	int mustPlaySuit;			// suit chosen by previous player after playing an 8
 	String hint;
 
@@ -71,7 +74,7 @@ public class CrazyEightsGameBoard extends GameBoard {
 		this.gameLayout = (LinearLayout) activity.findViewById(R.id.gameplay_layout);
 		this.handLayout = (LinearLayout) activity.findViewById(R.id.hand_layout);
 		this.oppLayout = (HorizontalScrollView) activity.findViewById(R.id.opponent_scroll_layout); // TODO temp
-		CrazyEightsGameBoard.activity = activity;
+		this.activity = activity;
 		hasPlayed = false;
 		chosenSuit = 0;
 		mustPlaySuit = 0;
@@ -149,8 +152,8 @@ public class CrazyEightsGameBoard extends GameBoard {
 	public String getGameName() { return getGameName(activity, getGameType()); }
 
 	@Override
-	public String getNextParticipant() {
-		return GameBoard.getNextParticipant(GameBoard.ROUND_ROBIN, participantIds, currParticipantIndex);
+	public String getNextParticipantId() {
+		return GameBoard.getNextParticipantId(GameBoard.ROUND_ROBIN, participantIds, currParticipantIndex);
 	}
 
 	private void activateGUI() {
@@ -186,7 +189,7 @@ public class CrazyEightsGameBoard extends GameBoard {
 							if (currHand.isEmpty()) {
 								youWonDialog.show();
 							} else if (playDeck.peek().getRank() == 8) {
-								hint = activity.getString(R.string.gameid_1_played_8_hint);
+								hint = activity.getString(R.string.gameid_1_you_played_8_hint);
 								chooseSuitDialog.show();
 							} else
 								hint = activity.getString(R.string.gameid_1_already_played_hint);
@@ -201,8 +204,10 @@ public class CrazyEightsGameBoard extends GameBoard {
 			public void onClick(View v) {
 				switch (v.getId()){
 					case R.id.hint_button:
-						Log.d(MainActivity.TAG, "hint requested");
-						BaseGameUtils.makeSimpleDialog(activity, getGameName(), hint).show();
+						if (!hasPlayed && mustPlaySuit != 0)
+							mustPlaySuitDialog.show();
+						else
+							BaseGameUtils.makeSimpleDialog(activity, getGameName(), hint).show();
 						break;
 					case R.id.cancel_button:
 						makeCancelDialog(activity, mCallbacks).show();
@@ -226,12 +231,13 @@ public class CrazyEightsGameBoard extends GameBoard {
 
 		android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(activity);
 		builder.setTitle(R.string.choose_suit)
-				.setItems(R.array.suits_array, new DialogInterface.OnClickListener() {
-					public void onClick(DialogInterface dialog, int which) {
-						chosenSuit = which+1;
-						if (MainActivity.DEBUG)
-							System.out.println("CrazyEightsGameBoard|activateGUI(): chose suit " + Card.suitToString(chosenSuit));
-					}
+				.setAdapter(new ArrayAdapterWithIcon(activity, R.array.suits_array, R.array.suits_icons_array),
+						new DialogInterface.OnClickListener() {
+							public void onClick(DialogInterface dialog, int which) {
+								chosenSuit = which+1;
+								if (MainActivity.DEBUG)
+									System.out.println("CrazyEightsGameBoard|activateGUI(): chose suit " + Card.suitToString(chosenSuit));
+							}
 				});
 		chooseSuitDialog = builder.create();
 		youWonDialog = makeYouWonDialog(activity, mCallbacks);
@@ -243,11 +249,24 @@ public class CrazyEightsGameBoard extends GameBoard {
 				hint = activity.getString(R.string.gameid_1_cant_play_hint);
 		else {
 			String suit = activity.getResources().getStringArray(R.array.suits_array)[mustPlaySuit-1];
-			hint = activity.getString(R.string.gameid_1_8_was_played) + " " + suit + " "
-					+ activity.getString(R.string.chosen) + ". "
-					+ activity.getString(R.string.Play) + " "
-					+ suit + ".";
-			BaseGameUtils.makeSimpleDialog(activity, getGameName(), hint).show();
+			TypedArray imgArray = activity.getResources().obtainTypedArray(R.array.suits_icons_array);
+			hint = getNextPlayerName(GameBoard.ROUND_ROBIN, playerNames, currParticipantIndex) + " "
+					+ activity.getString(R.string.gameid_1_8_was_played) + " " + suit + ". "
+					+ activity.getString(R.string.Play);
+
+			View dialogView = activity.getLayoutInflater().inflate(R.layout.crazy_eights_dialog, null);
+			((TextView) dialogView.findViewById(R.id.suit))
+					.setText(suit);
+			((ImageView) dialogView.findViewById(R.id.suit_image))
+					.setImageResource(imgArray.getResourceId(mustPlaySuit-1, 0));
+
+			builder = new android.app.AlertDialog.Builder(activity);
+			builder.setView(dialogView)
+					.setMessage(hint)
+					.setNeutralButton(R.string.ok, null);
+
+			mustPlaySuitDialog = builder.create();
+			mustPlaySuitDialog.show();
 		}
 	}
 
