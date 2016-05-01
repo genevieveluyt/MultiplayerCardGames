@@ -66,6 +66,21 @@ public abstract class GameBoard {
 		return getPreviousParticipantId(turnStyle, playerNames, currPlayerIndex);
 	}
 
+	public static int getPlayerDrawable(int player) {
+		int drawable = 0;
+		switch(player) {
+			case 0: drawable = R.drawable.player_red; break;
+			case 1: drawable = R.drawable.player_indigo; break;
+			case 2: drawable = R.drawable.player_orange; break;
+			case 3: drawable = R.drawable.player_purple; break;
+			case 4: drawable = R.drawable.player_green; break;
+			case 5: drawable = R.drawable.player_pink; break;
+			case 6: drawable = R.drawable.player_blue; break;
+			case 7: drawable = R.drawable.player_yellow; break;
+		}
+		return drawable;
+	}
+
 	public Dialog makeYouWonDialog(Activity activity, final GameCallbacks mCallbacks) {
 		android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(activity);
 		builder.setMessage(R.string.you_won)

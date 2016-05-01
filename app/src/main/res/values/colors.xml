@@ -12,6 +12,7 @@
     <color name="grey">#9e9e9e</color>
     <color name="almost_black">#212121</color>
     <color name="black">#000</color>
+    <color name="black_overlay">#66000000</color>
 
     <color name="new_game">@color/amber</color>
     <color name="check_games">@color/orange</color>
@@ -22,7 +23,7 @@
     <color name="play_button">@color/orange</color>
     <color name="in_game_menu_bg">@color/black_overlay</color>
     <color name="in_game_menu_button_text">@color/white</color>
-    <color name="in_game_title">@color/white</color>
+    <color name="in_game_title">#eeeeee</color>
+    <color name="in_game_title_bg">@color/black_overlay</color>
 
-    <color name="black_overlay">#66000000</color>
 </resources>

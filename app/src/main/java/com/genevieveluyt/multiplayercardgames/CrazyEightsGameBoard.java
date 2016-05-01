@@ -279,6 +279,7 @@ public class CrazyEightsGameBoard extends GameBoard {
 			String playerName = playerNames.get(i%numPlayers);
 			((TextView) oppView.findViewById(R.id.txt_playerName)).setText(playerName);
 			((TextView) oppView.findViewById(R.id.txt_numCards)).setText(Integer.toString(hands.get(playerName).size()));
+			((ImageView) oppView.findViewById(R.id.img_playerTemplate)).setImageResource(getPlayerDrawable(i%numPlayers));
 			oppLayout.addView(oppView);
 		}
 

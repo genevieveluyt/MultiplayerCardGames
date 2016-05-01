@@ -18,29 +18,35 @@
         tools:context=".MainActivity"
         android:background="@drawable/table_background" >
 
-        <TextView
-            android:id="@+id/game_title"
-            android:layout_width="wrap_content"
+        <RelativeLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textAppearance="@style/Heading"
-            android:textColor="@color/in_game_title"
-            android:text="Game Name"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginTop="@dimen/margin_large"
-            android:layout_marginBottom="@dimen/margin_medium"/>
+            android:background="@color/in_game_title_bg"
+            android:padding="@dimen/margin_medium" >
+
+            <TextView
+                android:id="@+id/game_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:textAppearance="@style/Heading"
+                android:textColor="@color/in_game_title"
+                android:text="Game Name"/>
+
+        </RelativeLayout>
 
         <HorizontalScrollView
             android:id="@+id/opponent_scroll_layout"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="3"
-            android:layout_gravity="center">
+            android:layout_height="wrap_content"
+            android:background="@drawable/opplayout_bg"
+            android:layout_marginTop="-24dp">
 
             <LinearLayout
                 android:id="@+id/opponent_layout"
                 android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:orientation="horizontal"/>
+                android:layout_height="wrap_content"
+                android:orientation="horizontal" />
 
         </HorizontalScrollView>
 
@@ -50,14 +56,14 @@
             android:layout_height="0dp"
             android:layout_weight="3"
             android:gravity="center"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:paddingTop="@dimen/margin_small"
+            android:paddingBottom="@dimen/margin_small">
 
             <ImageButton
                 android:id="@+id/drawdeck_view"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/margin_medium"
-                android:layout_marginBottom="@dimen/margin_large"
                 android:layout_marginRight="@dimen/margin_large"
                 android:layout_marginEnd="@dimen/margin_large"
                 android:adjustViewBounds="true"
@@ -72,8 +78,6 @@
                 android:id="@+id/playdeck_view"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/margin_medium"
-                android:layout_marginBottom="@dimen/margin_large"
                 android:adjustViewBounds="true"
                 android:scaleType="fitCenter"
                 android:background="@android:color/transparent"
@@ -87,7 +91,8 @@
             android:id="@+id/hand_scroll_layout"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="3" >
+            android:layout_weight="4"
+            android:layout_marginTop="@dimen/margin_medium">
 
             <LinearLayout
                 android:id="@+id/hand_layout"
