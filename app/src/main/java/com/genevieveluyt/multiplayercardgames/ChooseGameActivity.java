@@ -23,7 +23,7 @@ public class ChooseGameActivity extends Activity
         implements NavigationDrawerFragment.NavigationDrawerCallbacks {
 
     // Use for getting game type from result (data.getExtra(
-    public static final String EXTRA_GAME_TYPE = "gameType";
+    public static final String EXTRA_GAME_VARIANT = "gameVariant";
 
     /**
      * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
@@ -78,7 +78,7 @@ public class ChooseGameActivity extends Activity
                 return;
             }
 
-            setResult(Activity.RESULT_OK, data.putExtra(EXTRA_GAME_TYPE, selectedPosition));
+            setResult(Activity.RESULT_OK, data.putExtra(EXTRA_GAME_VARIANT, selectedPosition+1));
             finish();
         }
     }

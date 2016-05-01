@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.content.DialogInterface;
 
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -12,8 +13,8 @@ import java.util.HashMap;
  */
 public abstract class GameBoard {
 
-	// Game types
-	public static final int CRAZY_EIGHTS = 0;
+	// Game variants
+	public static final int CRAZY_EIGHTS = 1;
 
 	// Use in getting next/previous participant ID
 	public static final int ROUND_ROBIN = 50;
@@ -21,26 +22,18 @@ public abstract class GameBoard {
 	// Separates deck and hand segments in data
     protected static final char separator = '\n';
 
-	HashMap<String, Hand> hands;     // Player ID, Hand of cards
-
-    public GameBoard() {
-        hands = new HashMap<>();
-    }
-
 	public abstract void initBoard();
 
 	public abstract byte[] saveData();
 
 	public abstract void loadData(byte[] data);
 
-	public abstract int getGameType();
-
 	public abstract String getGameName();
 
 	public abstract String getNextParticipantId();
 
-	public static String getGameName(Activity activity, int gameId) {
-		return activity.getResources().getStringArray(R.array.game_names_array)[gameId];
+	public static String getGameName(Activity activity, int gameVariant) {
+		return activity.getResources().getStringArray(R.array.game_names_array)[gameVariant-1];
 	}
 
 	public static String getNextParticipantId(int turnStyle, ArrayList<String> participantIds, int currParticipantIndex) {

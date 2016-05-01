@@ -1,14 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout android:id="@+id/opponentLayout"
-                xmlns:android="http://schemas.android.com/apk/res/android"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
+<RelativeLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="wrap_content"
+	android:layout_height="wrap_content"
+	android:orientation="vertical"
+	android:layout_margin="@dimen/margin_medium">
 
 	<ImageView
 		android:id="@+id/img_playerTemplate"
-		android:layout_width="wrap_content"
+		android:layout_width="80dp"
 		android:layout_height="wrap_content"
+		android:adjustViewBounds="true"
 		android:background="@android:color/transparent"
 		android:src="@drawable/opponent"/>
 
@@ -17,16 +19,20 @@
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
 		android:layout_centerInParent="true"
-		android:text="5"
-		android:textAppearance="?android:attr/textAppearanceLarge"/>
+		android:text="16"
+		android:textAppearance="@style/DefaultText"
+		android:textStyle="bold"/>
 
 	<TextView
 		android:id="@+id/txt_playerName"
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
+		android:maxWidth="70dp"
+		android:singleLine="true"
 		android:layout_alignBottom="@id/img_playerTemplate"
 		android:layout_centerHorizontal="true"
-		android:layout_marginBottom="22dp"
+		android:layout_marginBottom="10dp"
 		android:text="Chris P. Bacon"
-		android:textAppearance="?android:attr/textAppearanceMedium"/>
+		android:textAppearance="@style/DefaultText"
+		android:textSize="10sp"/>
 </RelativeLayout>

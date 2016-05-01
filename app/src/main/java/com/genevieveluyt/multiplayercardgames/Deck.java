@@ -140,4 +140,6 @@ public class Deck {
 	public String toString() {
 		return deck.toString();
 	}
+
+	public int size() { return deck.size(); }
 }

@@ -7,6 +7,7 @@ import android.app.Activity;
 public class GameActivity extends Activity
     implements GameBoard.GameCallbacks {
 
+    public static final String EXTRA_GAME_VARIANT = "gameVariant";
     public static final String EXTRA_CURR_PARTICIPANT_INDEX = "currParticipantIndex";
     public static final String EXTRA_PARTICIPANT_IDS = "participantIds";
     public static final String EXTRA_PLAYER_NAMES = "playerNames";
@@ -25,13 +26,20 @@ public class GameActivity extends Activity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game);
+
         Intent intent = getIntent();
-        mTurnData = new CrazyEightsGameBoard(intent.getIntExtra(EXTRA_CURR_PARTICIPANT_INDEX, 0),
-                intent.getStringArrayListExtra(EXTRA_PARTICIPANT_IDS),
-                intent.getStringArrayListExtra(EXTRA_PLAYER_NAMES),
-                intent.getByteArrayExtra(EXTRA_DATA),
-                this
-        );
+        int gameVariant = intent.getIntExtra(EXTRA_GAME_VARIANT, 0);
+
+        switch (gameVariant) {
+            case GameBoard.CRAZY_EIGHTS:
+                mTurnData = new CrazyEightsGameBoard(intent.getIntExtra(EXTRA_CURR_PARTICIPANT_INDEX, 0),
+                    intent.getStringArrayListExtra(EXTRA_PARTICIPANT_IDS),
+                    intent.getStringArrayListExtra(EXTRA_PLAYER_NAMES),
+                    intent.getByteArrayExtra(EXTRA_DATA),
+                    this
+                );
+                break;
+        }
     }
 
     /****************************** In-Game Options **********************************************/
@@ -49,7 +57,7 @@ public class GameActivity extends Activity
         Intent intent = new Intent();
             intent.putExtra(EXTRA_ACTION, END_TURN)
                     .putExtra(EXTRA_NEXT_PARTICIPANT, game.getNextParticipantId())
-                    .putExtra(EXTRA_DATA, mTurnData.saveData());
+                    .putExtra(EXTRA_DATA, game.saveData());
 
         setResult(Activity.RESULT_OK, intent);
 

@@ -240,4 +240,6 @@ public class Hand implements Iterable<Card> {
 	public Iterator<Card> iterator()  {
 		return hand.listIterator(0);
 	}
+
+	public int size() { return hand.size(); }
 }

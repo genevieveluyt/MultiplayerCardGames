@@ -73,8 +73,6 @@ public class MainActivity extends Activity
 	// This is the current match we're in; null if not loaded
 	public TurnBasedMatch mMatch;
 
-	public int mGameType;
-
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -174,7 +172,8 @@ public class MainActivity extends Activity
 		intent.putExtra(GameActivity.EXTRA_CURR_PARTICIPANT_INDEX, participantIds.indexOf(participantId))
 				.putExtra(GameActivity.EXTRA_PARTICIPANT_IDS, mMatch.getParticipantIds())
 				.putExtra(GameActivity.EXTRA_PLAYER_NAMES, playerNames)
-				.putExtra(GameActivity.EXTRA_DATA, mMatch.getData());
+				.putExtra(GameActivity.EXTRA_DATA, mMatch.getData())
+				.putExtra(GameActivity.EXTRA_GAME_VARIANT, mMatch.getVariant());
 		startActivityForResult(intent, RC_PLAY_GAME);
 	}
 
@@ -320,15 +319,15 @@ public class MainActivity extends Activity
 				return;
 			}
 
-			mGameType = data.getIntExtra(ChooseGameActivity.EXTRA_GAME_TYPE, 0);
-
 			// get the invitee list
 			final ArrayList<String> invitees = data
 					.getStringArrayListExtra(Games.EXTRA_PLAYER_IDS);
 
 
 			TurnBasedMatchConfig tbmc = TurnBasedMatchConfig.builder()
-					.addInvitedPlayers(invitees).build();
+					.addInvitedPlayers(invitees)
+					.setVariant(data.getIntExtra(ChooseGameActivity.EXTRA_GAME_VARIANT, 0))
+					.build();
 
 			// Start the match
 			Games.TurnBasedMultiplayer.createMatch(mGoogleApiClient, tbmc).setResultCallback(
@@ -414,10 +413,17 @@ public class MainActivity extends Activity
 		for (String id : mMatch.getParticipantIds())
 			playerNames.add(mMatch.getParticipant(id).getDisplayName());
 
-		GameBoard mTurnData = new CrazyEightsGameBoard(mMatch.getParticipants().indexOf(myParticipantId),
-				mMatch.getParticipantIds(), playerNames, null, this);
-		showSpinner();
+		GameBoard mTurnData = null;
 
+		switch (mMatch.getVariant()) {
+			case GameBoard.CRAZY_EIGHTS:
+				mTurnData = new CrazyEightsGameBoard(mMatch.getParticipants().indexOf(myParticipantId),
+						mMatch.getParticipantIds(), playerNames, null, this);
+
+				break;
+		}
+
+		showSpinner();
 		Games.TurnBasedMultiplayer.takeTurn(mGoogleApiClient, mMatch.getMatchId(),
 				mTurnData.saveData(), myParticipantId).setResultCallback(
 				new ResultCallback<TurnBasedMultiplayer.UpdateMatchResult>() {

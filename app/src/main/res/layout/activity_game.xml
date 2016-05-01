@@ -32,8 +32,15 @@
             android:id="@+id/opponent_scroll_layout"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:gravity="center_horizontal"
-            android:layout_weight="3">
+            android:layout_weight="3"
+            android:layout_gravity="center">
+
+            <LinearLayout
+                android:id="@+id/opponent_layout"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:orientation="horizontal"/>
+
         </HorizontalScrollView>
 
         <LinearLayout

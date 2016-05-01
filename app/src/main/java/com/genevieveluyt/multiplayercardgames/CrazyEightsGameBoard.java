@@ -5,6 +5,7 @@ import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.res.TypedArray;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.HorizontalScrollView;
 import android.widget.ImageButton;
@@ -14,6 +15,7 @@ import android.widget.TextView;
 
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  * Created by Genevieve on 03/09/2015.
@@ -38,10 +40,10 @@ public class CrazyEightsGameBoard extends GameBoard {
     // Layouts
 	LinearLayout gameLayout;
 	LinearLayout handLayout;
-	HorizontalScrollView oppLayout;   // TODO move to parent class?
+	TextView numCardsView;
 
 	// Game variables
-	//HashMap<String, Hand> hands; in parent class
+	HashMap<String, Hand> hands;     // Player ID, Hand of cards
 	int currParticipantIndex;		// index of current player in participantIds and playerNames
 	ArrayList<String> participantIds;
 	ArrayList<String> playerNames;
@@ -73,8 +75,8 @@ public class CrazyEightsGameBoard extends GameBoard {
 		this.playerNames = playerNames;
 		this.gameLayout = (LinearLayout) activity.findViewById(R.id.gameplay_layout);
 		this.handLayout = (LinearLayout) activity.findViewById(R.id.hand_layout);
-		this.oppLayout = (HorizontalScrollView) activity.findViewById(R.id.opponent_scroll_layout); // TODO temp
 		this.activity = activity;
+		hands = new HashMap<>();
 		hasPlayed = false;
 		chosenSuit = 0;
 		mustPlaySuit = 0;
@@ -99,14 +101,13 @@ public class CrazyEightsGameBoard extends GameBoard {
 	}
 
 	/* Data format:
-		game id | draw deck data | play deck data | chosen suit | number of players | player names and their hand data
+		draw deck data | play deck data | chosen suit | number of players | player names and their hand data
 	 */
 	@Override
 	public byte[] saveData() {
 		if (MainActivity.DEBUG) System.out.println("CrazyEightsGameBoard|loadData(byte[]): Saving game data");
         StringBuilder dataStr = new StringBuilder();
-		dataStr.append(getGameType()).append(separator)
-        .append(drawDeck.getData()).append(separator)
+		dataStr.append(drawDeck.getData()).append(separator)
         .append(playDeck.getData()).append(separator)
 		.append(playerNames.size()).append(separator);
         for (String playerName : playerNames) {
@@ -126,12 +127,12 @@ public class CrazyEightsGameBoard extends GameBoard {
         String dataStr = new String(data, Charset.forName("UTF-8"));
         String[] dataArr = dataStr.split(String.valueOf(separator));
 
-        drawDeck = new Deck(dataArr[1], false, (ImageView) gameLayout.findViewById(R.id.drawdeck_view));
-        playDeck = new Deck(dataArr[2], true, (ImageView) gameLayout.findViewById(R.id.playdeck_view));
+        drawDeck = new Deck(dataArr[0], false, (ImageView) gameLayout.findViewById(R.id.drawdeck_view));
+        playDeck = new Deck(dataArr[1], true, (ImageView) gameLayout.findViewById(R.id.playdeck_view));
 
-		int numPlayers = Integer.parseInt(dataArr[3]);
+		int numPlayers = Integer.parseInt(dataArr[2]);
 
-        for (int i = 4; i < 4 + numPlayers*2; i+=2) {
+        for (int i = 3; i < 3 + numPlayers*2; i+=2) {
 	        String playerName = dataArr[i];
 	        if (playerName.equals(playerNames.get(currParticipantIndex))) {
 		        currHand = new Hand(dataArr[i+1], handLayout, handClickListener);
@@ -140,16 +141,11 @@ public class CrazyEightsGameBoard extends GameBoard {
 		        hands.put(playerName, new Hand(dataArr[i+1]));
 	        if (MainActivity.DEBUG) System.out.println(playerName + " hand: " + hands.get(playerName));
         }
-		mustPlaySuit = Integer.parseInt(dataArr[4 + numPlayers*2]);
+		mustPlaySuit = Integer.parseInt(dataArr[3 + numPlayers*2]);
 	}
 
 	@Override
-	public int getGameType() {
-		return GameBoard.CRAZY_EIGHTS;
-	}
-
-	@Override
-	public String getGameName() { return getGameName(activity, getGameType()); }
+	public String getGameName() { return getGameName(activity, GameBoard.CRAZY_EIGHTS); }
 
 	@Override
 	public String getNextParticipantId() {
@@ -158,20 +154,24 @@ public class CrazyEightsGameBoard extends GameBoard {
 
 	private void activateGUI() {
 
+		// Set game name at top
 		((TextView) activity.findViewById(R.id.game_title)).setText(getGameName());
 
+		// initiate callback object which calls back to GameActivity when turn is ended, cancelled or won
 		try {
 			mCallbacks = (GameCallbacks) activity;
 		} catch (ClassCastException e) {
 			throw new ClassCastException("Activity must implement GameCallbacks.");
 		}
 
+		// logic for when draw deck or play deck is clicked
 		View.OnClickListener gameClickListener = new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
 				switch (v.getId()) {
 					case R.id.drawdeck_view:
 						currHand.draw(drawDeck);
+						numCardsView.setText(Integer.toString(currHand.size()));
 						if (drawDeck.isEmpty()) { // TODO what if all cards are in players' hands?
 							// if ran out of cards to draw, reshuffle the play deck and use as draw deck
 							Card topCard = playDeck.drawVirtual();
@@ -185,6 +185,7 @@ public class CrazyEightsGameBoard extends GameBoard {
 					case R.id.playdeck_view:
 						if (validPlay()) {
 							currHand.playSelected(playDeck);
+							numCardsView.setText(Integer.toString(currHand.size()));
 							hasPlayed = true;
 							if (currHand.isEmpty()) {
 								youWonDialog.show();
@@ -199,6 +200,7 @@ public class CrazyEightsGameBoard extends GameBoard {
 			}
 		};
 
+		// logic for when menu options are clicked (hint, cancel, end turn)
 		View.OnClickListener menuClickListener = new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
@@ -223,12 +225,14 @@ public class CrazyEightsGameBoard extends GameBoard {
 			}
 		};
 
+		// set click listeners for game elements
 		gameLayout.findViewById(R.id.drawdeck_view).setOnClickListener(gameClickListener);
 		gameLayout.findViewById(R.id.playdeck_view).setOnClickListener(gameClickListener);
 		gameLayout.findViewById(R.id.hint_button).setOnClickListener(menuClickListener);
 		gameLayout.findViewById(R.id.cancel_button).setOnClickListener(menuClickListener);
 		gameLayout.findViewById(R.id.end_turn_button).setOnClickListener(menuClickListener);
 
+		// make dialog to be used for choosing a suit after an 8 is played
 		android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(activity);
 		builder.setTitle(R.string.choose_suit)
 				.setAdapter(new ArrayAdapterWithIcon(activity, R.array.suits_array, R.array.suits_icons_array),
@@ -240,8 +244,26 @@ public class CrazyEightsGameBoard extends GameBoard {
 							}
 				});
 		chooseSuitDialog = builder.create();
+
+		// initiate dialog for if game is won
 		youWonDialog = makeYouWonDialog(activity, mCallbacks);
 
+		// populate opponents
+		LinearLayout oppLayout = (LinearLayout) activity.findViewById(R.id.opponent_layout);
+		LayoutInflater inflater = activity.getLayoutInflater();
+
+		int numPlayers = playerNames.size();
+		for (int i = currParticipantIndex; i < currParticipantIndex + numPlayers; i++) {
+			View oppView = inflater.inflate(R.layout.opponent_layout, oppLayout, false);
+			String playerName = playerNames.get(i%numPlayers);
+			((TextView) oppView.findViewById(R.id.txt_playerName)).setText(playerName);
+			((TextView) oppView.findViewById(R.id.txt_numCards)).setText(Integer.toString(hands.get(playerName).size()));
+			oppLayout.addView(oppView);
+		}
+
+		numCardsView = (TextView) oppLayout.getChildAt(0).findViewById(R.id.txt_numCards);
+
+		// set hint
 		if (mustPlaySuit == 0)
 			if (canPlay())
 				hint = activity.getString(R.string.gameid_1_can_play_hint);
@@ -260,6 +282,9 @@ public class CrazyEightsGameBoard extends GameBoard {
 			((ImageView) dialogView.findViewById(R.id.suit_image))
 					.setImageResource(imgArray.getResourceId(mustPlaySuit-1, 0));
 
+			imgArray.recycle();
+
+			// make dialog to display suit chosen by previous if they played an 8 and show it
 			builder = new android.app.AlertDialog.Builder(activity);
 			builder.setView(dialogView)
 					.setMessage(hint)
