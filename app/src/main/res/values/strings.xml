@@ -7,6 +7,7 @@
     <string name="sign_out">Sign Out</string>
     <string name="sign_in">Sign In</string>
     <string name="cancel">Cancel</string>
+    <string name="cancel_game">Cancel Game</string>
     <string name="end_turn">End Turn</string>
     <string name="current_games">Current Games</string>
     <string name="new_game">New Game</string>

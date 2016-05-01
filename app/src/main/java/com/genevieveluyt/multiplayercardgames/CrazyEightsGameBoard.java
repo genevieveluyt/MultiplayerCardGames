@@ -4,13 +4,13 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.res.TypedArray;
-import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
-import android.widget.HorizontalScrollView;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.PopupMenu;
 import android.widget.TextView;
 
 import java.nio.charset.Charset;
@@ -53,6 +53,7 @@ public class CrazyEightsGameBoard extends GameBoard {
 	Dialog chooseSuitDialog;
 	Dialog youWonDialog;
 	Dialog mustPlaySuitDialog;
+	PopupMenu overflowMenu;
 	GameCallbacks mCallbacks;
 
 	// Gameplay variables
@@ -200,7 +201,7 @@ public class CrazyEightsGameBoard extends GameBoard {
 			}
 		};
 
-		// logic for when menu options are clicked (hint, cancel, end turn)
+		// logic for when menu options are clicked (hint, cancel, more options)
 		View.OnClickListener menuClickListener = new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
@@ -211,9 +212,6 @@ public class CrazyEightsGameBoard extends GameBoard {
 						else
 							BaseGameUtils.makeSimpleDialog(activity, getGameName(), hint).show();
 						break;
-					case R.id.cancel_button:
-						makeCancelDialog(activity, mCallbacks).show();
-						break;
 					case R.id.end_turn_button:
 						if (hasPlayed) {
 							if (playDeck.peek().getRank() == 8 && chosenSuit == 0)
@@ -221,6 +219,23 @@ public class CrazyEightsGameBoard extends GameBoard {
 							else
 								mCallbacks.onTurnEnded();
 						}
+						break;
+					case R.id.overflow_button:
+						overflowMenu.show();
+				}
+			}
+		};
+
+		// logic for options in overflow menu
+		PopupMenu.OnMenuItemClickListener moreOptionsClickListener = new PopupMenu.OnMenuItemClickListener() {
+			@Override
+			public boolean onMenuItemClick(MenuItem item) {
+				switch (item.getItemId()) {
+					case R.id.cancel_game:
+						makeCancelDialog(activity, mCallbacks).show();
+						return true;
+					default:
+						return false;
 				}
 			}
 		};
@@ -229,8 +244,8 @@ public class CrazyEightsGameBoard extends GameBoard {
 		gameLayout.findViewById(R.id.drawdeck_view).setOnClickListener(gameClickListener);
 		gameLayout.findViewById(R.id.playdeck_view).setOnClickListener(gameClickListener);
 		gameLayout.findViewById(R.id.hint_button).setOnClickListener(menuClickListener);
-		gameLayout.findViewById(R.id.cancel_button).setOnClickListener(menuClickListener);
 		gameLayout.findViewById(R.id.end_turn_button).setOnClickListener(menuClickListener);
+		gameLayout.findViewById(R.id.overflow_button).setOnClickListener(menuClickListener);
 
 		// make dialog to be used for choosing a suit after an 8 is played
 		android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(activity);
@@ -248,13 +263,19 @@ public class CrazyEightsGameBoard extends GameBoard {
 		// initiate dialog for if game is won
 		youWonDialog = makeYouWonDialog(activity, mCallbacks);
 
+		// initiate overflow popup menu
+		overflowMenu = new PopupMenu(activity, activity.findViewById(R.id.overflow_button));
+		MenuInflater menuInflater = overflowMenu.getMenuInflater();
+		menuInflater.inflate(R.menu.crazy_eights_menu, overflowMenu.getMenu());
+		overflowMenu.setOnMenuItemClickListener(moreOptionsClickListener);
+
 		// populate opponents
 		LinearLayout oppLayout = (LinearLayout) activity.findViewById(R.id.opponent_layout);
-		LayoutInflater inflater = activity.getLayoutInflater();
+		LayoutInflater layoutInflater = activity.getLayoutInflater();
 
 		int numPlayers = playerNames.size();
 		for (int i = currParticipantIndex; i < currParticipantIndex + numPlayers; i++) {
-			View oppView = inflater.inflate(R.layout.opponent_layout, oppLayout, false);
+			View oppView = layoutInflater.inflate(R.layout.opponent_layout, oppLayout, false);
 			String playerName = playerNames.get(i%numPlayers);
 			((TextView) oppView.findViewById(R.id.txt_playerName)).setText(playerName);
 			((TextView) oppView.findViewById(R.id.txt_numCards)).setText(Integer.toString(hands.get(playerName).size()));

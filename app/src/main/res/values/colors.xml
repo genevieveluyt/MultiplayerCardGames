@@ -22,6 +22,7 @@
     <color name="play_button">@color/orange</color>
     <color name="in_game_menu_bg">@color/black_overlay</color>
     <color name="in_game_menu_button_text">@color/white</color>
+    <color name="in_game_title">@color/white</color>
 
     <color name="black_overlay">#66000000</color>
 </resources>
