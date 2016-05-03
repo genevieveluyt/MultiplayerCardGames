@@ -30,6 +30,13 @@ public class ChooseGameActivity extends Activity
      */
     static NavigationDrawerFragment mNavigationDrawerFragment;
 
+    // Use this to determine the order of games in the Choose Game UI
+    // Use 0 for the 'other games' page
+    static int[] variantMap = {
+        Game.CRAZY_EIGHTS,
+        0
+    };
+
     int selectedPosition;
 
     @Override
@@ -78,7 +85,7 @@ public class ChooseGameActivity extends Activity
                 return;
             }
 
-            setResult(Activity.RESULT_OK, data.putExtra(EXTRA_GAME_VARIANT, selectedPosition+1));
+            setResult(Activity.RESULT_OK, data.putExtra(EXTRA_GAME_VARIANT, variantMap[selectedPosition]));
             finish();
         }
     }
@@ -98,9 +105,8 @@ public class ChooseGameActivity extends Activity
          * number.
          */
         public static GameInfoFragment newInstance(int position) {
-            GameInfoFragment fragment = new GameInfoFragment();
-            fragment.position = position;
-            return fragment;
+            GameInfoFragment.position = position;
+            return new GameInfoFragment();
         }
 
         @Override
@@ -110,15 +116,15 @@ public class ChooseGameActivity extends Activity
             String [] gameNames = getResources().getStringArray(R.array.game_names_array);
             String [] gameInfo = getResources().getStringArray(R.array.game_info_array);
             ((TextView) rootView.findViewById(R.id.game_title))
-                    .setText(gameNames[position]);
+                    .setText(gameNames[variantMap[position]]);
             ((TextView) rootView.findViewById(R.id.game_info))
-                    .setText(Html.fromHtml(gameInfo[position]));
+                    .setText(Html.fromHtml(gameInfo[variantMap[position]]));
 
             // hide Play button if on Other Games page
             Button playButton = (Button) rootView.findViewById(R.id.play_button);
             TextView infoView = (TextView) rootView.findViewById(R.id.game_info);
             TextView moreGamesView = (TextView) rootView.findViewById(R.id.more_games);
-            if (position == gameNames.length-1) {
+            if (variantMap[position] == 0) {    // on Other Games page
                 playButton.setVisibility(View.GONE);
                 infoView.setVisibility(View.GONE);
                 moreGamesView.setVisibility(View.VISIBLE);

@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
     <string-array name="game_names_array">
-        <item>Crazy Eights</item>
         <item>Other Games</item>
+        <item>Crazy Eights</item>
     </string-array>
 
     <string-array name="game_info_array">
-        <item>@string/crazy_eights_info</item>
         <item>@string/coming_soon_info</item>
+        <item>@string/crazy_eights_info</item>
     </string-array>
 
     <string name="crazy_eights_info">

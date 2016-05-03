@@ -347,7 +347,7 @@ public class MainActivity extends Activity
 		switch (mMatch.getVariant()) {
 			case Game.CRAZY_EIGHTS:
 				mTurnData = new CrazyEightsGame(mMatch.getParticipants().indexOf(myParticipantId),
-						mMatch.getParticipantIds(), playerNames, null, this);
+						mMatch.getParticipantIds(), playerNames, this);
 
 				break;
 		}

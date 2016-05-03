@@ -46,6 +46,8 @@ public class NavigationDrawerFragment extends Fragment
      */
     private static final String PREF_USER_LEARNED_DRAWER = "navigation_drawer_learned";
 
+    private static String[] chooseGameNames;
+
     /**
      * A pointer to the current callbacks instance (the Activity).
      */
@@ -76,6 +78,13 @@ public class NavigationDrawerFragment extends Fragment
             mFromSavedInstanceState = true;
         }
 
+        // drawer will use game names in order specified by ChooseGameActivity.variantMap
+        String[] gameNames = getResources().getStringArray(R.array.game_names_array);
+        chooseGameNames = new String[gameNames.length];
+        for (int i = 0; i < gameNames.length; i++) {
+            chooseGameNames[i] = gameNames[ChooseGameActivity.variantMap[i]];
+        }
+
         // Select either the default item (0) or the last selected item.
         selectItem(mCurrentSelectedPosition);
     }
@@ -94,7 +103,7 @@ public class NavigationDrawerFragment extends Fragment
         mDrawerListView.setAdapter(new ArrayAdapter<String>(
                 getActivity(),
                 R.layout.drawer_list_item,
-                getResources().getStringArray(R.array.game_names_array)));
+                chooseGameNames));
         mDrawerListView.setItemChecked(mCurrentSelectedPosition, true);
 
         return mDrawerListView;

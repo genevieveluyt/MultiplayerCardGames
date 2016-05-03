@@ -34,7 +34,7 @@ public abstract class Game {
 	public abstract String getNextParticipantId();
 
 	public static String getGameName(Activity activity, int gameVariant) {
-		return activity.getResources().getStringArray(R.array.game_names_array)[gameVariant-1];
+		return activity.getResources().getStringArray(R.array.game_names_array)[gameVariant];
 	}
 
 	public static String getNextParticipantId(int turnStyle, ArrayList<String> participantIds, int currParticipantIndex) {
