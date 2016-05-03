@@ -5,7 +5,9 @@ import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.text.Html;
 import android.util.Log;
 import android.view.GestureDetector;
@@ -85,7 +87,13 @@ public class ChooseGameActivity extends Activity
                 return;
             }
 
-            setResult(Activity.RESULT_OK, data.putExtra(EXTRA_GAME_VARIANT, variantMap[selectedPosition]));
+            int gameVariant = variantMap[selectedPosition];
+
+            // store that user knows how to play this game
+            SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
+            sp.edit().putBoolean(Game.PREF_GAME_LEARNED[gameVariant], true).apply();
+
+            setResult(Activity.RESULT_OK, data.putExtra(EXTRA_GAME_VARIANT, gameVariant));
             finish();
         }
     }

@@ -2,12 +2,11 @@ package com.genevieveluyt.multiplayercardgames;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.Dialog;
 import android.content.DialogInterface;
+import android.content.res.Resources;
+import android.text.Html;
 
-import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.HashMap;
 
 /**
  * Created by Genevieve on 03/09/2015.
@@ -19,6 +18,12 @@ public abstract class Game {
 
 	// Use in getting next/previous participant ID
 	public static final int ROUND_ROBIN = 50;
+
+	// Use to store whether the game has been played before, use variant as key
+	public static final String[] PREF_GAME_LEARNED = {
+			null,
+			"crazy_eights_learned"
+	};
 
 	// Separates deck and hand segments in data
     protected static final char separator = '\n';
@@ -110,6 +115,29 @@ public abstract class Game {
 					}
 				})
 				.setNegativeButton(R.string.no, null)
+				.show();
+	}
+
+	public static void showHintDialog(final Activity activity, String hint, final int gameVariant) {
+		(new AlertDialog.Builder(activity))
+				.setTitle(activity.getResources().getStringArray(R.array.game_names_array)[gameVariant])
+				.setMessage(hint)
+				.setNegativeButton(R.string.game_rules, new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						showGameRulesDialog(activity, gameVariant);
+					}
+				})
+				.setPositiveButton(R.string.ok, null)
+				.show();
+	}
+
+	public static void showGameRulesDialog(Activity activity, int gameVariant) {
+		Resources res = activity.getResources();
+		(new AlertDialog.Builder(activity))
+				.setTitle(res.getStringArray(R.array.game_names_array)[gameVariant])
+				.setMessage(Html.fromHtml(res.getStringArray(R.array.game_info_array)[gameVariant]))
+				.setNeutralButton(R.string.ok, null)
 				.show();
 	}
 

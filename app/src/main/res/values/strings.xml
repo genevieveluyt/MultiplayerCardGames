@@ -19,6 +19,7 @@
     <string name="Play">Play</string>
     <string name="play">play</string>
     <string name="confirm_cancel">Are you sure you want to cancel this game?</string>
+    <string name="game_rules">Game Rules</string>
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>

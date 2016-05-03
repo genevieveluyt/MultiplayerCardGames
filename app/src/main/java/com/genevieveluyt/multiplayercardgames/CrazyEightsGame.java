@@ -3,7 +3,9 @@ package com.genevieveluyt.multiplayercardgames;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.content.res.TypedArray;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuInflater;
@@ -221,7 +223,7 @@ public class CrazyEightsGame extends Game {
 						if (!hasPlayed && mustPlaySuit != 0)
 							mustPlaySuitDialog.show();
 						else
-							BaseGameUtils.makeSimpleDialog(activity, getGameName(), hint).show();
+							showHintDialog(activity, hint, Game.CRAZY_EIGHTS);
 						break;
 					case R.id.end_turn_button:
 						if (hasPlayed) {
@@ -320,10 +322,24 @@ public class CrazyEightsGame extends Game {
 			builder = new android.app.AlertDialog.Builder(activity);
 			builder.setView(dialogView)
 					.setMessage(hint)
+					.setNegativeButton(R.string.game_rules, new DialogInterface.OnClickListener() {
+						@Override
+						public void onClick(DialogInterface dialog, int which) {
+							showGameRulesDialog(activity, Game.CRAZY_EIGHTS);
+						}
+					})
 					.setNeutralButton(R.string.ok, null);
 
 			mustPlaySuitDialog = builder.create();
 			mustPlaySuitDialog.show();
+
+			// If user has never played this game before, show game rules
+			SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(activity);
+			boolean learnedCrazyEights = sp.getBoolean(Game.PREF_GAME_LEARNED[Game.CRAZY_EIGHTS], false);
+			if (!learnedCrazyEights) {
+				sp.edit().putBoolean(Game.PREF_GAME_LEARNED[Game.CRAZY_EIGHTS], true).apply();
+				showGameRulesDialog(activity, Game.CRAZY_EIGHTS);
+			}
 		}
 	}
 
