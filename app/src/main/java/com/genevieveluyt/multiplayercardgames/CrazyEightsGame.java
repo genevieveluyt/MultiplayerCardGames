@@ -46,10 +46,11 @@ public class CrazyEightsGame extends Game {
 	TextView numCardsView;
 
 	// Game variables
-	HashMap<String, Hand> hands;    // Player ID, Hand of cards
+	Hand[] hands;    // Player ID, Hand of cards
 	int currParticipantIndex;		// index of current player in participantIds and playerNames
 	ArrayList<String> participantIds;
 	ArrayList<String> playerNames;
+	int numPlayers;
 	Hand currHand;
 	Deck drawDeck;
 	Deck playDeck;
@@ -79,7 +80,8 @@ public class CrazyEightsGame extends Game {
 		this.gameLayout = (LinearLayout) activity.findViewById(R.id.gameplay_layout);
 		this.handLayout = (LinearLayout) activity.findViewById(R.id.hand_layout);
 		this.activity = activity;
-		hands = new HashMap<>();
+		numPlayers = participantIds.size();
+		hands = new Hand[numPlayers];
 		hasPlayed = false;
 		chosenSuit = 0;
 		mustPlaySuit = 0;
@@ -95,7 +97,8 @@ public class CrazyEightsGame extends Game {
 		this.gameLayout = (LinearLayout) activity.findViewById(R.id.gameplay_layout);
 		this.handLayout = (LinearLayout) activity.findViewById(R.id.hand_layout);
 		this.activity = activity;
-		hands = new HashMap<>();
+		numPlayers = participantIds.size();
+		hands = new Hand[numPlayers];
 		hasPlayed = false;
 		chosenSuit = 0;
 		mustPlaySuit = 0;
@@ -107,8 +110,14 @@ public class CrazyEightsGame extends Game {
 			throw new ClassCastException("Activity must implement GameCallbacks.");
 		}
 
-		loadData(data);
-		activateGUI();
+		try {
+			loadData(data);
+			activateGUI();
+		}
+		 catch (Exception e) {
+			Log.d(MainActivity.TAG, "Loading data error: " + e);
+			mCallbacks.onLoadDataError();
+		}
 	}
 
 	@Override
@@ -116,26 +125,26 @@ public class CrazyEightsGame extends Game {
 		if (MainActivity.DEBUG) System.out.println("CrazyEightsGame|initGame(): Initializing game");
 		drawDeck = new Deck(Deck.STANDARD);
 		playDeck = new Deck(Deck.EMPTY);
-		for (String player : playerNames) {
-			hands.put(player, new Hand(drawDeck, STARTING_HAND));
-			if (MainActivity.DEBUG) System.out.println(player + " hand: " + hands.get(player));
+
+		for (int i = 0; i < numPlayers; i++) {
+			hands[i] = new Hand(drawDeck, STARTING_HAND);
+			if (MainActivity.DEBUG) System.out.println(playerNames.get(i) + " hand: " + hands[i]);
 		}
+
 		playDeck.addVirtual(drawDeck.drawVirtual());
 	}
 
 	/* Data format:
-		draw deck data | play deck data | chosen suit | number of players | player names and their hand data
+		draw deck data | play deck data | chosen suit | hand data
 	 */
 	@Override
 	public byte[] saveData() {
 		if (MainActivity.DEBUG) System.out.println("CrazyEightsGame|loadData(byte[]): Saving game data");
         StringBuilder dataStr = new StringBuilder();
 		dataStr.append(drawDeck.getData()).append(separator)
-        .append(playDeck.getData()).append(separator)
-		.append(playerNames.size()).append(separator);
-        for (String playerName : playerNames) {
-	        dataStr.append(playerName).append(separator)
-            .append(hands.get(playerName).getData())
+        .append(playDeck.getData()).append(separator);
+        for (int i = 0; i < numPlayers; i++) {
+            dataStr.append(hands[i].getData())
             .append(separator);
         }
 		dataStr.append(chosenSuit);
@@ -147,30 +156,24 @@ public class CrazyEightsGame extends Game {
 	public void loadData(byte[] data) {
 		if (MainActivity.DEBUG) System.out.println("CrazyEightsGame|loadData(byte[]): Loading game data");
 
-		try {
-			String dataStr = new String(data, Charset.forName("UTF-8"));
-			String[] dataArr = dataStr.split(String.valueOf(separator));
+		String dataStr = new String(data, Charset.forName("UTF-8"));
+		String[] dataArr = dataStr.split(String.valueOf(separator));
 
-			drawDeck = new Deck(dataArr[0], false, (ImageView) gameLayout.findViewById(R.id.drawdeck_view));
-			playDeck = new Deck(dataArr[1], true, (ImageView) gameLayout.findViewById(R.id.playdeck_view));
+		drawDeck = new Deck(dataArr[0], false, (ImageView) gameLayout.findViewById(R.id.drawdeck_view));
+		playDeck = new Deck(dataArr[1], true, (ImageView) gameLayout.findViewById(R.id.playdeck_view));
 
-			int numPlayers = Integer.parseInt(dataArr[2]);
+		for (int i = 2; i < 2 + numPlayers; i++) {
+			int j = i-2;
+			if (j == currParticipantIndex) {
+				currHand = new Hand(dataArr[i], handLayout, handClickListener);
+				hands[j] = currHand;
+			} else
+				hands[j] = new Hand(dataArr[i]);
 
-			for (int i = 3; i < 3 + numPlayers * 2; i += 2) {
-				String playerName = dataArr[i];
-				if (playerName.equals(playerNames.get(currParticipantIndex))) {
-					currHand = new Hand(dataArr[i + 1], handLayout, handClickListener);
-					hands.put(playerName, currHand);
-				} else
-					hands.put(playerName, new Hand(dataArr[i + 1]));
-				if (MainActivity.DEBUG)
-					System.out.println(playerName + " hand: " + hands.get(playerName));
-			}
-			mustPlaySuit = Integer.parseInt(dataArr[3 + numPlayers * 2]);
-		} catch (Exception e) {
-			Log.d(MainActivity.TAG, "Loading data error: " + e);
-			mCallbacks.onLoadDataError();
+			if (MainActivity.DEBUG)
+				System.out.println(playerNames.get(j) + " hand: " + hands[j]);
 		}
+		mustPlaySuit = Integer.parseInt(dataArr[2 + numPlayers]);
 	}
 
 	private void activateGUI() {
@@ -284,12 +287,11 @@ public class CrazyEightsGame extends Game {
 		LinearLayout oppLayout = (LinearLayout) activity.findViewById(R.id.opponent_layout);
 		LayoutInflater layoutInflater = activity.getLayoutInflater();
 
-		int numPlayers = playerNames.size();
 		for (int i = currParticipantIndex; i < currParticipantIndex + numPlayers; i++) {
 			View oppView = layoutInflater.inflate(R.layout.opponent_layout, oppLayout, false);
 			String playerName = playerNames.get(i%numPlayers);
 			((TextView) oppView.findViewById(R.id.txt_playerName)).setText(playerName);
-			((TextView) oppView.findViewById(R.id.txt_numCards)).setText(Integer.toString(hands.get(playerName).size()));
+			((TextView) oppView.findViewById(R.id.txt_numCards)).setText(Integer.toString(hands[i%numPlayers].size()));
 			((ImageView) oppView.findViewById(R.id.img_playerTemplate)).setImageResource(getPlayerDrawable(i%numPlayers));
 			oppLayout.addView(oppView);
 		}

@@ -3,6 +3,7 @@ package com.genevieveluyt.multiplayercardgames;
 import android.content.Intent;
 import android.os.Bundle;
 import android.app.Activity;
+import android.util.Log;
 
 public class GameActivity extends Activity
     implements Game.GameCallbacks {
