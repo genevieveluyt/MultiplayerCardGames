@@ -21,7 +21,50 @@ public class BaseGameUtils {
 	 */
 	public static void showAlert(Activity activity, String message) {
 		(new AlertDialog.Builder(activity)).setMessage(message)
-				.setNeutralButton(android.R.string.ok, null).create().show();
+				.setNeutralButton(android.R.string.ok, null).show();
+	}
+
+	/**
+	 * Create a simple {@link Dialog} with an 'OK' button, a title, and a message.
+	 *
+	 * @param activity the Activity in which the Dialog should be displayed.
+	 * @param messageId the resource id of the message to display on the Dialog.
+	 * @return an instance of {@link android.app.AlertDialog}
+	 */
+	public static void showAlert(Activity activity, int messageId) {
+		(new AlertDialog.Builder(activity))
+				.setMessage(messageId)
+				.setNeutralButton(android.R.string.ok, null).show();
+	}
+
+	/**
+	 * Create a simple {@link Dialog} with an 'OK' button, a title, and a message.
+	 *
+	 * @param activity the Activity in which the Dialog should be displayed.
+	 * @param title the title to display on the dialog.
+	 * @param message the message to display on the Dialog.
+	 * @return an instance of {@link android.app.AlertDialog}
+	 */
+	public static void showAlert(Activity activity, String title, String message) {
+		(new AlertDialog.Builder(activity))
+				.setTitle(title)
+				.setMessage(message)
+				.setNeutralButton(android.R.string.ok, null).show();
+	}
+
+	/**
+	 * Create a simple {@link Dialog} with an 'OK' button, a title, and a message.
+	 *
+	 * @param activity the Activity in which the Dialog should be displayed.
+	 * @param titleId the resource id of the title to display on the dialog.
+	 * @param messageId the resource id of the message to display on the Dialog.
+	 * @return an instance of {@link android.app.AlertDialog}
+	 */
+	public static void showAlert(Activity activity, int titleId, int messageId) {
+		(new AlertDialog.Builder(activity))
+				.setTitle(titleId)
+				.setMessage(messageId)
+				.setNeutralButton(android.R.string.ok, null).show();
 	}
 
 	/**
@@ -66,46 +109,8 @@ public class BaseGameUtils {
 	}
 
 	/**
-	 * For use in sample code only. Checks if the sample was set up correctly,
-	 * including changing the package name to a non-Google package name and
-	 * replacing the placeholder IDs. Shows alert dialogs to notify about problems.
-	 * DO NOT call this method from a production app, it's meant only for samples!
-	 * @param resIds the resource IDs to check for placeholders
-	 * @return true if sample is set up correctly; false otherwise.
-	 */
-	public static boolean verifySampleSetup(Activity activity, int... resIds) {
-		StringBuilder problems = new StringBuilder();
-		boolean problemFound = false;
-		problems.append("The following set up problems were found:\n\n");
-
-		// Did the developer forget to change the package name?
-		if (activity.getPackageName().startsWith("com.google.example.games")) {
-			problemFound = true;
-			problems.append("- Package name cannot be com.google.*. You need to change the "
-					+ "sample's package name to your own package.").append("\n");
-		}
-
-		for (int i : resIds) {
-			if (activity.getString(i).toLowerCase().contains("replaceme")) {
-				problemFound = true;
-				problems.append("- You must replace all " +
-						"placeholder IDs in the ids.xml file by your project's IDs.").append("\n");
-				break;
-			}
-		}
-
-		if (problemFound) {
-			problems.append("\n\nThese problems may prevent the app from working properly.");
-			showAlert(activity, problems.toString());
-			return false;
-		}
-
-		return true;
-	}
-
-	/**
 	 * Show a {@link android.app.Dialog} with the correct message for a connection error.
-	 *  @param activity the Activity in which the Dialog should be displayed.
+	 * @param activity the Activity in which the Dialog should be displayed.
 	 * @param requestCode the request code from onActivityResult.
 	 * @param actResp the response code from onActivityResult.
 	 * @param errorDescription the resource id of a String for a generic error message.

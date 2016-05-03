@@ -59,8 +59,6 @@ public class MainActivity extends Activity
 	// Automatically start the sign-in flow when the Activity starts
 	private boolean mAutoStartSignInFlow = true;
 
-	private AlertDialog mAlertDialog;
-
 	// For our intents
 	private static final int RC_SIGN_IN = 9001;
 	final static int RC_SELECT_PLAYERS = 10000;
@@ -197,23 +195,6 @@ public class MainActivity extends Activity
 
 	/*********************************************************************************************/
 
-	public void playTurn() {
-		String participantId = mMatch.getParticipantId(Games.Players.getCurrentPlayerId(mGoogleApiClient));
-		ArrayList<String> participantIds = mMatch.getParticipantIds();
-
-		ArrayList<String> playerNames = new ArrayList<>();
-		for (String id : mMatch.getParticipantIds())
-			playerNames.add(mMatch.getParticipant(id).getDisplayName());
-
-		Intent intent = new Intent(this, GameActivity.class);
-		intent.putExtra(GameActivity.EXTRA_CURR_PARTICIPANT_INDEX, participantIds.indexOf(participantId))
-				.putExtra(GameActivity.EXTRA_PARTICIPANT_IDS, mMatch.getParticipantIds())
-				.putExtra(GameActivity.EXTRA_PLAYER_NAMES, playerNames)
-				.putExtra(GameActivity.EXTRA_DATA, mMatch.getData())
-				.putExtra(GameActivity.EXTRA_GAME_VARIANT, mMatch.getVariant());
-		startActivityForResult(intent, RC_PLAY_GAME);
-	}
-
 	// Update the visibility based on what state we're in.
 	public void updateMenuUI() {
 		boolean isSignedIn = (mGoogleApiClient != null) && (mGoogleApiClient.isConnected());
@@ -228,9 +209,6 @@ public class MainActivity extends Activity
 			checkGamesBtn.setClickable(false);
 			checkGamesBtn.setBackgroundResource(R.color.grey);
 
-			if (mAlertDialog != null) {
-				mAlertDialog.dismiss();
-			}
 			return;
 		}
 
@@ -241,192 +219,110 @@ public class MainActivity extends Activity
 		checkGamesBtn.setBackgroundResource(R.color.check_games);
 	}
 
-	// Helpful dialogs
-
-	public void showSpinner() {
-		findViewById(R.id.progressLayout).setVisibility(View.VISIBLE);
-	}
-
-	public void dismissSpinner() {
-		findViewById(R.id.progressLayout).setVisibility(View.GONE);
-	}
-
-	// Generic warning/info dialog
-	public void showWarning(String title, String message) {
-		AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
-
-		// set title
-		alertDialogBuilder.setTitle(title).setMessage(message);
-
-		// set dialog message
-		alertDialogBuilder.setCancelable(false).setPositiveButton("OK",
-				new DialogInterface.OnClickListener() {
-					@Override
-					public void onClick(DialogInterface dialog, int id) {
-						// if this button is clicked, close
-						// current activity
-					}
-				});
-
-		// create alert dialog
-		mAlertDialog = alertDialogBuilder.create();
-
-		// show it
-		mAlertDialog.show();
-	}
-
-	// Rematch dialog
-	public void askForRematch() {
-		AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
-
-		alertDialogBuilder.setMessage("Do you want a rematch?");
-
-		alertDialogBuilder
-				.setCancelable(false)
-				.setPositiveButton("Sure, rematch!",
-						new DialogInterface.OnClickListener() {
-							@Override
-							public void onClick(DialogInterface dialog, int id) {
-								rematch();
-							}
-						})
-				.setNegativeButton("No.",
-						new DialogInterface.OnClickListener() {
-							@Override
-							public void onClick(DialogInterface dialog, int id) {
-							}
-						});
-
-		alertDialogBuilder.show();
-	}
-
-	// This function is what gets called when you return from either the Play
-	// Games built-in inbox, or else the create game built-in interface.
 	@Override
 	public void onActivityResult(int request, int response, Intent data) {
 		super.onActivityResult(request, response, data);
-		if (request == RC_SIGN_IN) {
-			mSignInClicked = false;
-			mResolvingConnectionFailure = false;
-			if (response == Activity.RESULT_OK) {
-				mGoogleApiClient.connect();
-			} else {
-				BaseGameUtils.showActivityResultError(this, request, response, R.string.signin_other_error);
-			}
-		} else if (request == RC_CHOOSE_GAME) {
-			if (response != Activity.RESULT_OK) {
-				// user canceled
-				return;
-			}
 
-			// get the invitee list
-			final ArrayList<String> invitees = data
-					.getStringArrayListExtra(Games.EXTRA_PLAYER_IDS);
+		switch (request) {
+			case RC_SIGN_IN:
+				mSignInClicked = false;
+				mResolvingConnectionFailure = false;
+				if (response == Activity.RESULT_OK)
+					mGoogleApiClient.connect();
+				else
+					BaseGameUtils.showActivityResultError(this, request, response, R.string.signin_other_error);
+				break;
+			case RC_CHOOSE_GAME:
+				if (response != Activity.RESULT_OK) {
+					// user canceled
+					return;
+				}
 
+				// get the invitee list
+				final ArrayList<String> invitees = data
+						.getStringArrayListExtra(Games.EXTRA_PLAYER_IDS);
 
-			TurnBasedMatchConfig tbmc = TurnBasedMatchConfig.builder()
-					.addInvitedPlayers(invitees)
-					.setVariant(data.getIntExtra(ChooseGameActivity.EXTRA_GAME_VARIANT, 0))
-					.build();
+				TurnBasedMatchConfig tbmc = TurnBasedMatchConfig.builder()
+						.addInvitedPlayers(invitees)
+						.setVariant(data.getIntExtra(ChooseGameActivity.EXTRA_GAME_VARIANT, 0))
+						.build();
 
-			// Start the match
-			Games.TurnBasedMultiplayer.createMatch(mGoogleApiClient, tbmc).setResultCallback(
-					new ResultCallback<TurnBasedMultiplayer.InitiateMatchResult>() {
-						@Override
-						public void onResult(TurnBasedMultiplayer.InitiateMatchResult result) {
-							processResult(result);
-						}
-					});
-			showSpinner();
-		} else if (request == RC_PLAY_GAME) {
-			if (response != Activity.RESULT_OK) {
-				return;
-			}
+				// Start the match
+				Games.TurnBasedMultiplayer.createMatch(mGoogleApiClient, tbmc).setResultCallback(
+						new ResultCallback<TurnBasedMultiplayer.InitiateMatchResult>() {
+							@Override
+							public void onResult(TurnBasedMultiplayer.InitiateMatchResult result) {
+								processResult(result);
+							}
+						});
+				showSpinner();
+				break;
+			case RC_PLAY_GAME:
+				if (response != Activity.RESULT_OK) {
+					return;
+				}
 
-			int action = data.getIntExtra(GameActivity.EXTRA_ACTION, 0);
-			String nextParticipantId;
+				processGameResponse(data);
+				break;
+			case RC_LOOK_AT_MATCHES:
+				// Returning from the 'Select Match' dialog
 
-			switch (action) {
-				case GameActivity.END_TURN:
-					nextParticipantId = data.getStringExtra(GameActivity.EXTRA_NEXT_PARTICIPANT);
-					Games.TurnBasedMultiplayer.takeTurn(mGoogleApiClient, mMatch.getMatchId(),
-							data.getByteArrayExtra(GameActivity.EXTRA_DATA), nextParticipantId).setResultCallback(
-							new ResultCallback<TurnBasedMultiplayer.UpdateMatchResult>() {
-								@Override
-								public void onResult(TurnBasedMultiplayer.UpdateMatchResult result) {
-									processResult(result);
-								}
-							});
-					break;
-				case GameActivity.GAME_WON:
-					Games.TurnBasedMultiplayer.finishMatch(mGoogleApiClient, mMatch.getMatchId())
-							.setResultCallback(new ResultCallback<TurnBasedMultiplayer.UpdateMatchResult>() {
-								@Override
-								public void onResult(TurnBasedMultiplayer.UpdateMatchResult result) {
-									processResult(result);
-								}
-							});
-					break;
-				case GameActivity.CANCEL:
-					Games.TurnBasedMultiplayer.cancelMatch(mGoogleApiClient, mMatch.getMatchId())
-							.setResultCallback(new ResultCallback<TurnBasedMultiplayer.CancelMatchResult>() {
-								@Override
-								public void onResult(TurnBasedMultiplayer.CancelMatchResult result) {
-									processResult(result);
-								}
-							});
-					break;
-				case GameActivity.UNKNOWN_GAME_ERROR:
-					makeUnknownGameErrorDialog().show();
-					break;
-				case GameActivity.LOAD_DATA_ERROR:
-					makeLoadErrorDialog().show();
-			}
-		} else if (request == RC_LOOK_AT_MATCHES) {
-			// Returning from the 'Select Match' dialog
+				if (response != Activity.RESULT_OK) {
+					// user canceled
+					return;
+				}
 
-			if (response != Activity.RESULT_OK) {
-				// user canceled
-				return;
-			}
+				TurnBasedMatch match = data
+						.getParcelableExtra(Multiplayer.EXTRA_TURN_BASED_MATCH);
 
-			TurnBasedMatch match = data
-					.getParcelableExtra(Multiplayer.EXTRA_TURN_BASED_MATCH);
+				if (match != null) {
+					updateMatch(match);
+				}
 
-			if (match != null) {
-				updateMatch(match);
-			}
-
-			Log.d(TAG, "Match = " + match);
+				Log.d(TAG, "Match = " + match);
 		}
 	}
 
+	public void processGameResponse(Intent data) {
+		int action = data.getIntExtra(GameActivity.EXTRA_ACTION, 0);
+		String nextParticipantId;
 
-
-	public AlertDialog makeLoadErrorDialog() {
-		return (new AlertDialog.Builder(this))
-				.setMessage(R.string.load_data_error)
-				.setNegativeButton(R.string.no, null)
-				.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
-					@Override
-					public void onClick(DialogInterface dialog, int which) {
-						startActivity(getPlayStoreIntent());
-					}
-				})
-				.create();
-	}
-
-	public AlertDialog makeUnknownGameErrorDialog() {
-		return (new AlertDialog.Builder(this))
-				.setMessage(R.string.unknown_game_error)
-				.setNegativeButton(R.string.no, null)
-				.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
-					@Override
-					public void onClick(DialogInterface dialog, int which) {
-						startActivity(MainActivity.getPlayStoreIntent());
-					}
-				})
-				.create();
+		switch (action) {
+			case GameActivity.END_TURN:
+				nextParticipantId = data.getStringExtra(GameActivity.EXTRA_NEXT_PARTICIPANT);
+				Games.TurnBasedMultiplayer.takeTurn(mGoogleApiClient, mMatch.getMatchId(),
+						data.getByteArrayExtra(GameActivity.EXTRA_DATA), nextParticipantId).setResultCallback(
+						new ResultCallback<TurnBasedMultiplayer.UpdateMatchResult>() {
+							@Override
+							public void onResult(TurnBasedMultiplayer.UpdateMatchResult result) {
+								processResult(result);
+							}
+						});
+				break;
+			case GameActivity.GAME_WON:
+				Games.TurnBasedMultiplayer.finishMatch(mGoogleApiClient, mMatch.getMatchId())
+						.setResultCallback(new ResultCallback<TurnBasedMultiplayer.UpdateMatchResult>() {
+							@Override
+							public void onResult(TurnBasedMultiplayer.UpdateMatchResult result) {
+								processResult(result);
+							}
+						});
+				break;
+			case GameActivity.CANCEL:
+				Games.TurnBasedMultiplayer.cancelMatch(mGoogleApiClient, mMatch.getMatchId())
+						.setResultCallback(new ResultCallback<TurnBasedMultiplayer.CancelMatchResult>() {
+							@Override
+							public void onResult(TurnBasedMultiplayer.CancelMatchResult result) {
+								processResult(result);
+							}
+						});
+				break;
+			case GameActivity.UNKNOWN_GAME_ERROR:
+				showUnknownGameErrorDialog();
+				break;
+			case GameActivity.LOAD_DATA_ERROR:
+				showLoadErrorDialog();
+		}
 	}
 
 	// startMatch() happens in response to the createTurnBasedMatch()
@@ -467,19 +363,6 @@ public class MainActivity extends Activity
 				});
 	}
 
-	// If you choose to rematch, then call it and wait for a response.
-	public void rematch() {
-		showSpinner();
-		Games.TurnBasedMultiplayer.rematch(mGoogleApiClient, mMatch.getMatchId()).setResultCallback(
-				new ResultCallback<TurnBasedMultiplayer.InitiateMatchResult>() {
-					@Override
-					public void onResult(TurnBasedMultiplayer.InitiateMatchResult result) {
-						processResult(result);
-					}
-				});
-		mMatch = null;
-	}
-
 	// This is the main function that gets called when players choose a match
 	// from the inbox, or else create a match and want to start it.
 	public void updateMatch(TurnBasedMatch match) {
@@ -490,24 +373,17 @@ public class MainActivity extends Activity
 
 		switch (status) {
 			case TurnBasedMatch.MATCH_STATUS_CANCELED:
-				showWarning("Canceled!", "This game was canceled!");
+				BaseGameUtils.showAlert(this, "Canceled!", "This game was canceled!");
 				return;
 			case TurnBasedMatch.MATCH_STATUS_EXPIRED:
-				showWarning("Expired!", "This game is expired.  So sad!");
+				BaseGameUtils.showAlert(this, "Expired!", "This game is expired.");
 				return;
 			case TurnBasedMatch.MATCH_STATUS_AUTO_MATCHING:
-				showWarning("Waiting for auto-match...",
+				BaseGameUtils.showAlert(this, "Waiting for auto-match...",
 						"We're still waiting for an automatch partner.");
 				return;
 			case TurnBasedMatch.MATCH_STATUS_COMPLETE:
-				if (turnStatus == TurnBasedMatch.MATCH_TURN_STATUS_COMPLETE) {
-					showWarning(
-							"Complete!",
-							"This game is over");
-					return;
-				}
-
-				showWarning("Complete!",
+				BaseGameUtils.showAlert(this, "Complete!",
 						"This game is over");
 				return;
 		}
@@ -519,25 +395,43 @@ public class MainActivity extends Activity
 				return;
 			case TurnBasedMatch.MATCH_TURN_STATUS_THEIR_TURN:
 				// Should return results.
-				showWarning("Alas...", "It's not your turn.");
+				BaseGameUtils.showAlert(this, "Alas...", "It's not your turn.");
 				break;
 			case TurnBasedMatch.MATCH_TURN_STATUS_INVITED:
-				showWarning("Good inititative!",
+				BaseGameUtils.showAlert(this, "Good inititative!",
 						"Still waiting for invitations.\n\nBe patient!");
 		}
 	}
 
+	public void playTurn() {
+		String participantId = mMatch.getParticipantId(Games.Players.getCurrentPlayerId(mGoogleApiClient));
+		ArrayList<String> participantIds = mMatch.getParticipantIds();
+
+		ArrayList<String> playerNames = new ArrayList<>();
+		for (String id : mMatch.getParticipantIds())
+			playerNames.add(mMatch.getParticipant(id).getDisplayName());
+
+		Intent intent = new Intent(this, GameActivity.class);
+		intent.putExtra(GameActivity.EXTRA_CURR_PARTICIPANT_INDEX, participantIds.indexOf(participantId))
+				.putExtra(GameActivity.EXTRA_PARTICIPANT_IDS, mMatch.getParticipantIds())
+				.putExtra(GameActivity.EXTRA_PLAYER_NAMES, playerNames)
+				.putExtra(GameActivity.EXTRA_DATA, mMatch.getData())
+				.putExtra(GameActivity.EXTRA_GAME_VARIANT, mMatch.getVariant());
+		startActivityForResult(intent, RC_PLAY_GAME);
+	}
+
+	/*********************** implement game result callbacks **************************************/
+
 	private void processResult(TurnBasedMultiplayer.CancelMatchResult result) {
 		dismissSpinner();
-
-		checkStatusCode(null, result.getStatus().getStatusCode());
+		checkStatusCode(result.getStatus().getStatusCode());
 	}
 
 	private void processResult(TurnBasedMultiplayer.InitiateMatchResult result) {
 		TurnBasedMatch match = result.getMatch();
 		dismissSpinner();
 
-		if (!checkStatusCode(match, result.getStatus().getStatusCode())) {
+		if (!checkStatusCode(result.getStatus().getStatusCode())) {
 			return;
 		}
 
@@ -554,60 +448,51 @@ public class MainActivity extends Activity
 	private void processResult(TurnBasedMultiplayer.UpdateMatchResult result) {
 		TurnBasedMatch match = result.getMatch();
 		dismissSpinner();
-		if (!checkStatusCode(match, result.getStatus().getStatusCode())) {
+		if (!checkStatusCode(result.getStatus().getStatusCode())) {
 			return;
 		}
 		if (match.canRematch()) {
-			askForRematch();
+			showRematchDialog();
 		}
 
 		if (match.getTurnStatus() == TurnBasedMatch.MATCH_TURN_STATUS_MY_TURN)
 			updateMatch(match);
 	}
 
-	public void showErrorMessage(TurnBasedMatch match, int statusCode,
-	                             int stringId) {
+	/*********************************************************************************************/
 
-		showWarning("Warning", getResources().getString(stringId));
-	}
 
 	// Returns false if something went wrong, probably. This should handle
 	// more cases, and probably report more accurate results.
-	private boolean checkStatusCode(TurnBasedMatch match, int statusCode) {
+	private boolean checkStatusCode(int statusCode) {
 		switch (statusCode) {
 			case GamesStatusCodes.STATUS_OK:
 				return true;
 			case GamesStatusCodes.STATUS_NETWORK_ERROR_OPERATION_DEFERRED:
 				return true;
 			case GamesStatusCodes.STATUS_MULTIPLAYER_ERROR_NOT_TRUSTED_TESTER:
-				showErrorMessage(match, statusCode,
-						R.string.status_multiplayer_error_not_trusted_tester);
+				showWarning(R.string.status_multiplayer_error_not_trusted_tester);
 				break;
 			case GamesStatusCodes.STATUS_MATCH_ERROR_ALREADY_REMATCHED:
-				showErrorMessage(match, statusCode,
-						R.string.match_error_already_rematched);
+				showWarning(R.string.match_error_already_rematched);
 				break;
 			case GamesStatusCodes.STATUS_NETWORK_ERROR_OPERATION_FAILED:
-				showErrorMessage(match, statusCode,
-						R.string.network_error_operation_failed);
+				showWarning(R.string.network_error_operation_failed);
 				break;
 			case GamesStatusCodes.STATUS_CLIENT_RECONNECT_REQUIRED:
-				showErrorMessage(match, statusCode,
-						R.string.client_reconnect_required);
+				showWarning(R.string.client_reconnect_required);
 				break;
 			case GamesStatusCodes.STATUS_INTERNAL_ERROR:
-				showErrorMessage(match, statusCode, R.string.internal_error);
+				showWarning(R.string.internal_error);
 				break;
 			case GamesStatusCodes.STATUS_MATCH_ERROR_INACTIVE_MATCH:
-				showErrorMessage(match, statusCode,
-						R.string.match_error_inactive_match);
+				showWarning(R.string.match_error_inactive_match);
 				break;
 			case GamesStatusCodes.STATUS_MATCH_ERROR_LOCALLY_MODIFIED:
-				showErrorMessage(match, statusCode,
-						R.string.match_error_locally_modified);
+				showWarning(R.string.match_error_locally_modified);
 				break;
 			default:
-				showErrorMessage(match, statusCode, R.string.unexpected_status);
+				showWarning(R.string.unexpected_status);
 				Log.d(TAG, "Did not have warning or string to deal with: "
 						+ statusCode);
 		}
@@ -618,5 +503,73 @@ public class MainActivity extends Activity
 	// intent to open app details in Play Store
 	public static Intent getPlayStoreIntent() {
 		return new Intent(Intent.ACTION_VIEW , Uri.parse("market://details?id=com.genevieveluyt.multiplayercardgames"));
+	}
+
+	/********************************** Dialogs ***************************************************/
+
+	public void showSpinner() {
+		findViewById(R.id.progressLayout).setVisibility(View.VISIBLE);
+	}
+
+	public void dismissSpinner() {
+		findViewById(R.id.progressLayout).setVisibility(View.GONE);
+	}
+
+	public void showRematchDialog() {
+		(new AlertDialog.Builder(this))
+				.setMessage("Do you want a rematch?")
+				.setCancelable(false)
+				.setPositiveButton(R.string.yes,
+						new DialogInterface.OnClickListener() {
+							@Override
+							public void onClick(DialogInterface dialog, int id) {
+								showSpinner();
+								Games.TurnBasedMultiplayer.rematch(mGoogleApiClient, mMatch.getMatchId()).setResultCallback(
+										new ResultCallback<TurnBasedMultiplayer.InitiateMatchResult>() {
+											@Override
+											public void onResult(TurnBasedMultiplayer.InitiateMatchResult result) {
+												processResult(result);
+											}
+										});
+								mMatch = null;
+							}
+						})
+				.setNegativeButton(R.string.no,
+						new DialogInterface.OnClickListener() {
+							@Override
+							public void onClick(DialogInterface dialog, int id) {
+							}
+						})
+				.show();
+	}
+
+	public void showWarning(int stringId) {
+		BaseGameUtils.showAlert(this, R.string.warning, stringId);
+	}
+
+	public void showLoadErrorDialog() {
+		(new AlertDialog.Builder(this))
+				.setMessage(R.string.load_data_error)
+				.setNegativeButton(R.string.no, null)
+				.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						startActivity(getPlayStoreIntent());
+					}
+				})
+				.show();
+	}
+
+	public void showUnknownGameErrorDialog() {
+		(new AlertDialog.Builder(this))
+				.setMessage(R.string.unknown_game_error)
+				.setNegativeButton(R.string.no, null)
+				.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						startActivity(MainActivity.getPlayStoreIntent());
+					}
+				})
+				.show();
 	}
 }

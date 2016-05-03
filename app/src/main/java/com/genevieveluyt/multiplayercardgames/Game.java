@@ -23,7 +23,7 @@ public abstract class Game {
 	// Separates deck and hand segments in data
     protected static final char separator = '\n';
 
-	public abstract void initBoard();
+	public abstract void initGame();
 
 	public abstract byte[] saveData();
 
@@ -82,8 +82,8 @@ public abstract class Game {
 		return drawable;
 	}
 
-	public AlertDialog makeYouWonDialog(Activity activity, final GameCallbacks mCallbacks) {
-		return (new AlertDialog.Builder(activity))
+	public static void showYouWonDialog(Activity activity, final GameCallbacks mCallbacks) {
+		(new AlertDialog.Builder(activity))
 				.setMessage(R.string.you_won)
 				.setNeutralButton(R.string.ok, new DialogInterface.OnClickListener() {
 					@Override
@@ -97,11 +97,11 @@ public abstract class Game {
 						mCallbacks.onGameWon();
 					}
 				})
-				.create();
+			.show();
 	}
 
-	public static AlertDialog makeCancelDialog(Activity activity, final GameCallbacks mCallbacks) {
-		return (new AlertDialog.Builder(activity))
+	public static void showCancelDialog(Activity activity, final GameCallbacks mCallbacks) {
+		(new AlertDialog.Builder(activity))
 				.setMessage(R.string.confirm_cancel)
 				.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
 					@Override
@@ -110,7 +110,7 @@ public abstract class Game {
 					}
 				})
 				.setNegativeButton(R.string.no, null)
-				.create();
+				.show();
 	}
 
 	public interface GameCallbacks {

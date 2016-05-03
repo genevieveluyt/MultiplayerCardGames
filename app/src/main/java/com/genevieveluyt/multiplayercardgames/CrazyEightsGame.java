@@ -44,7 +44,7 @@ public class CrazyEightsGame extends Game {
 	TextView numCardsView;
 
 	// Game variables
-	HashMap<String, Hand> hands;     // Player ID, Hand of cards
+	HashMap<String, Hand> hands;    // Player ID, Hand of cards
 	int currParticipantIndex;		// index of current player in participantIds and playerNames
 	ArrayList<String> participantIds;
 	ArrayList<String> playerNames;
@@ -52,14 +52,13 @@ public class CrazyEightsGame extends Game {
 	Deck drawDeck;
 	Deck playDeck;
 	AlertDialog chooseSuitDialog;
-	AlertDialog youWonDialog;
 	AlertDialog mustPlaySuitDialog;
 	PopupMenu overflowMenu;
 	GameCallbacks mCallbacks;
 
 	// Gameplay variables
 	boolean hasPlayed; 			// current player has placed a card on the play deck
-	int chosenSuit;		// suit chosen after playing an 8
+	int chosenSuit;				// suit chosen after playing an 8
 	int mustPlaySuit;			// suit chosen by previous player after playing an 8
 	String hint;
 
@@ -69,6 +68,22 @@ public class CrazyEightsGame extends Game {
 			if (!hasPlayed) currHand.select(new Card(v.getId()));
 		}
 	};
+
+	public CrazyEightsGame(int currParticipantIndex, ArrayList<String> participantIds, ArrayList<String> playerNames, Activity activity) {
+		super();
+		this.currParticipantIndex = currParticipantIndex;
+		this.participantIds = participantIds;
+		this.playerNames = playerNames;
+		this.gameLayout = (LinearLayout) activity.findViewById(R.id.gameplay_layout);
+		this.handLayout = (LinearLayout) activity.findViewById(R.id.hand_layout);
+		this.activity = activity;
+		hands = new HashMap<>();
+		hasPlayed = false;
+		chosenSuit = 0;
+		mustPlaySuit = 0;
+
+		initGame();
+	}
 
 	public CrazyEightsGame(int currParticipantIndex, ArrayList<String> participantIds, ArrayList<String> playerNames, byte[] data, Activity activity) {
 		super();
@@ -82,24 +97,21 @@ public class CrazyEightsGame extends Game {
 		hasPlayed = false;
 		chosenSuit = 0;
 		mustPlaySuit = 0;
-		if (data == null)
-			initBoard();
-		else {
-			// initiate callback object which calls back to GameActivity when turn is ended, cancelled or won
-			try {
-				mCallbacks = (GameCallbacks) activity;
-			} catch (ClassCastException e) {
-				throw new ClassCastException("Activity must implement GameCallbacks.");
-			}
 
-			loadData(data);
-			activateGUI();
+		// initiate callback object which calls back to GameActivity when turn is ended, cancelled or won
+		try {
+			mCallbacks = (GameCallbacks) activity;
+		} catch (ClassCastException e) {
+			throw new ClassCastException("Activity must implement GameCallbacks.");
 		}
+
+		loadData(data);
+		activateGUI();
 	}
 
 	@Override
-	public void initBoard() {
-		if (MainActivity.DEBUG) System.out.println("CrazyEightsGame|initBoard(): Initializing game board");
+	public void initGame() {
+		if (MainActivity.DEBUG) System.out.println("CrazyEightsGame|initGame(): Initializing game");
 		drawDeck = new Deck(Deck.STANDARD);
 		playDeck = new Deck(Deck.EMPTY);
 		for (String player : playerNames) {
@@ -188,7 +200,7 @@ public class CrazyEightsGame extends Game {
 							numCardsView.setText(Integer.toString(currHand.size()));
 							hasPlayed = true;
 							if (currHand.isEmpty()) {
-								youWonDialog.show();
+								Game.showYouWonDialog(activity, mCallbacks);
 							} else if (playDeck.peek().getRank() == 8) {
 								hint = activity.getString(R.string.gameid_1_you_played_8_hint);
 								chooseSuitDialog.show();
@@ -231,7 +243,7 @@ public class CrazyEightsGame extends Game {
 			public boolean onMenuItemClick(MenuItem item) {
 				switch (item.getItemId()) {
 					case R.id.cancel_game:
-						makeCancelDialog(activity, mCallbacks).show();
+						showCancelDialog(activity, mCallbacks);
 						return true;
 					default:
 						return false;
@@ -258,9 +270,6 @@ public class CrazyEightsGame extends Game {
 							}
 				});
 		chooseSuitDialog = builder.create();
-
-		// initiate dialog for if game is won
-		youWonDialog = makeYouWonDialog(activity, mCallbacks);
 
 		// initiate overflow popup menu
 		overflowMenu = new PopupMenu(activity, activity.findViewById(R.id.overflow_button));
