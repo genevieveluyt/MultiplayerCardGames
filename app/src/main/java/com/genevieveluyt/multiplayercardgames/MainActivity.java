@@ -20,6 +20,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -160,39 +161,21 @@ public class MainActivity extends Activity
 		updateMenuUI();
 	}
 
-	public void playTurn() {
-		String participantId = mMatch.getParticipantId(Games.Players.getCurrentPlayerId(mGoogleApiClient));
-		ArrayList<String> participantIds = mMatch.getParticipantIds();
-
-		ArrayList<String> playerNames = new ArrayList<>();
-		for (String id : mMatch.getParticipantIds())
-			playerNames.add(mMatch.getParticipant(id).getDisplayName());
-
-		Intent intent = new Intent(this, GameActivity.class);
-		intent.putExtra(GameActivity.EXTRA_CURR_PARTICIPANT_INDEX, participantIds.indexOf(participantId))
-				.putExtra(GameActivity.EXTRA_PARTICIPANT_IDS, mMatch.getParticipantIds())
-				.putExtra(GameActivity.EXTRA_PLAYER_NAMES, playerNames)
-				.putExtra(GameActivity.EXTRA_DATA, mMatch.getData())
-				.putExtra(GameActivity.EXTRA_GAME_VARIANT, mMatch.getVariant());
-		startActivityForResult(intent, RC_PLAY_GAME);
-	}
-
 	/******************************** Home Menu Options *******************************************/
 
-	// Open the create-game UI. You will get back an onActivityResult
-	// and figure out what to do.
+	// Open Choose Game UI
 	public void onNewGameClicked(View view) {
 		Intent intent = new Intent(this, ChooseGameActivity.class);
 		startActivityForResult(intent, RC_CHOOSE_GAME);
 	}
 
-	// Displays your inbox. You will get back onActivityResult where
-	// you will need to figure out what you clicked on.
+	// Open Current Matches UI
 	public void onCheckGamesClicked(View view) {
 		Intent intent = Games.TurnBasedMultiplayer.getInboxIntent(mGoogleApiClient);
 		startActivityForResult(intent, RC_LOOK_AT_MATCHES);
 	}
 
+	// Sign in or out
 	public void onSignInOutClicked(View view) {
 		Button signInOutBtn = (Button) view;
 
@@ -213,6 +196,23 @@ public class MainActivity extends Activity
 	}
 
 	/*********************************************************************************************/
+
+	public void playTurn() {
+		String participantId = mMatch.getParticipantId(Games.Players.getCurrentPlayerId(mGoogleApiClient));
+		ArrayList<String> participantIds = mMatch.getParticipantIds();
+
+		ArrayList<String> playerNames = new ArrayList<>();
+		for (String id : mMatch.getParticipantIds())
+			playerNames.add(mMatch.getParticipant(id).getDisplayName());
+
+		Intent intent = new Intent(this, GameActivity.class);
+		intent.putExtra(GameActivity.EXTRA_CURR_PARTICIPANT_INDEX, participantIds.indexOf(participantId))
+				.putExtra(GameActivity.EXTRA_PARTICIPANT_IDS, mMatch.getParticipantIds())
+				.putExtra(GameActivity.EXTRA_PLAYER_NAMES, playerNames)
+				.putExtra(GameActivity.EXTRA_DATA, mMatch.getData())
+				.putExtra(GameActivity.EXTRA_GAME_VARIANT, mMatch.getVariant());
+		startActivityForResult(intent, RC_PLAY_GAME);
+	}
 
 	// Update the visibility based on what state we're in.
 	public void updateMenuUI() {
@@ -375,7 +375,12 @@ public class MainActivity extends Activity
 									processResult(result);
 								}
 							});
-
+					break;
+				case GameActivity.UNKNOWN_GAME_ERROR:
+					makeUnknownGameErrorDialog().show();
+					break;
+				case GameActivity.LOAD_DATA_ERROR:
+					makeLoadErrorDialog().show();
 			}
 		} else if (request == RC_LOOK_AT_MATCHES) {
 			// Returning from the 'Select Match' dialog
@@ -396,6 +401,34 @@ public class MainActivity extends Activity
 		}
 	}
 
+
+
+	public AlertDialog makeLoadErrorDialog() {
+		return (new AlertDialog.Builder(this))
+				.setMessage(R.string.load_data_error)
+				.setNegativeButton(R.string.no, null)
+				.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						startActivity(getPlayStoreIntent());
+					}
+				})
+				.create();
+	}
+
+	public AlertDialog makeUnknownGameErrorDialog() {
+		return (new AlertDialog.Builder(this))
+				.setMessage(R.string.unknown_game_error)
+				.setNegativeButton(R.string.no, null)
+				.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						startActivity(MainActivity.getPlayStoreIntent());
+					}
+				})
+				.create();
+	}
+
 	// startMatch() happens in response to the createTurnBasedMatch()
 	// above. This is only called on success, so we should have a
 	// valid match object. We're taking this opportunity to setup the
@@ -413,11 +446,11 @@ public class MainActivity extends Activity
 		for (String id : mMatch.getParticipantIds())
 			playerNames.add(mMatch.getParticipant(id).getDisplayName());
 
-		GameBoard mTurnData = null;
+		Game mTurnData = null;
 
 		switch (mMatch.getVariant()) {
-			case GameBoard.CRAZY_EIGHTS:
-				mTurnData = new CrazyEightsGameBoard(mMatch.getParticipants().indexOf(myParticipantId),
+			case Game.CRAZY_EIGHTS:
+				mTurnData = new CrazyEightsGame(mMatch.getParticipants().indexOf(myParticipantId),
 						mMatch.getParticipantIds(), playerNames, null, this);
 
 				break;
@@ -580,5 +613,10 @@ public class MainActivity extends Activity
 		}
 
 		return false;
+	}
+
+	// intent to open app details in Play Store
+	public static Intent getPlayStoreIntent() {
+		return new Intent(Intent.ACTION_VIEW , Uri.parse("market://details?id=com.genevieveluyt.multiplayercardgames"));
 	}
 }

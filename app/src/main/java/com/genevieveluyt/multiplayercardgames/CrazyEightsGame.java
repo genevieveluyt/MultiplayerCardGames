@@ -1,9 +1,10 @@
 package com.genevieveluyt.multiplayercardgames;
 
 import android.app.Activity;
-import android.app.Dialog;
+import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.res.TypedArray;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -31,7 +32,7 @@ import java.util.HashMap;
  * 8	-	declare a suit which the next player must play (or another 8)
  *
  */
-public class CrazyEightsGameBoard extends GameBoard {
+public class CrazyEightsGame extends Game {
 
 	private static final int STARTING_HAND = 8;
 
@@ -50,9 +51,9 @@ public class CrazyEightsGameBoard extends GameBoard {
 	Hand currHand;
 	Deck drawDeck;
 	Deck playDeck;
-	Dialog chooseSuitDialog;
-	Dialog youWonDialog;
-	Dialog mustPlaySuitDialog;
+	AlertDialog chooseSuitDialog;
+	AlertDialog youWonDialog;
+	AlertDialog mustPlaySuitDialog;
 	PopupMenu overflowMenu;
 	GameCallbacks mCallbacks;
 
@@ -69,7 +70,7 @@ public class CrazyEightsGameBoard extends GameBoard {
 		}
 	};
 
-	public CrazyEightsGameBoard(int currParticipantIndex, ArrayList<String> participantIds, ArrayList<String> playerNames, byte[] data, Activity activity) {
+	public CrazyEightsGame(int currParticipantIndex, ArrayList<String> participantIds, ArrayList<String> playerNames, byte[] data, Activity activity) {
 		super();
 		this.currParticipantIndex = currParticipantIndex;
 		this.participantIds = participantIds;
@@ -84,6 +85,13 @@ public class CrazyEightsGameBoard extends GameBoard {
 		if (data == null)
 			initBoard();
 		else {
+			// initiate callback object which calls back to GameActivity when turn is ended, cancelled or won
+			try {
+				mCallbacks = (GameCallbacks) activity;
+			} catch (ClassCastException e) {
+				throw new ClassCastException("Activity must implement GameCallbacks.");
+			}
+
 			loadData(data);
 			activateGUI();
 		}
@@ -91,7 +99,7 @@ public class CrazyEightsGameBoard extends GameBoard {
 
 	@Override
 	public void initBoard() {
-		if (MainActivity.DEBUG) System.out.println("CrazyEightsGameBoard|initBoard(): Initializing game board");
+		if (MainActivity.DEBUG) System.out.println("CrazyEightsGame|initBoard(): Initializing game board");
 		drawDeck = new Deck(Deck.STANDARD);
 		playDeck = new Deck(Deck.EMPTY);
 		for (String player : playerNames) {
@@ -106,7 +114,7 @@ public class CrazyEightsGameBoard extends GameBoard {
 	 */
 	@Override
 	public byte[] saveData() {
-		if (MainActivity.DEBUG) System.out.println("CrazyEightsGameBoard|loadData(byte[]): Saving game data");
+		if (MainActivity.DEBUG) System.out.println("CrazyEightsGame|loadData(byte[]): Saving game data");
         StringBuilder dataStr = new StringBuilder();
 		dataStr.append(drawDeck.getData()).append(separator)
         .append(playDeck.getData()).append(separator)
@@ -123,47 +131,38 @@ public class CrazyEightsGameBoard extends GameBoard {
 
 	@Override
 	public void loadData(byte[] data) {
-		if (MainActivity.DEBUG) System.out.println("CrazyEightsGameBoard|loadData(byte[]): Loading game data");
+		if (MainActivity.DEBUG) System.out.println("CrazyEightsGame|loadData(byte[]): Loading game data");
 
-        String dataStr = new String(data, Charset.forName("UTF-8"));
-        String[] dataArr = dataStr.split(String.valueOf(separator));
+		try {
+			String dataStr = new String(data, Charset.forName("UTF-8"));
+			String[] dataArr = dataStr.split(String.valueOf(separator));
 
-        drawDeck = new Deck(dataArr[0], false, (ImageView) gameLayout.findViewById(R.id.drawdeck_view));
-        playDeck = new Deck(dataArr[1], true, (ImageView) gameLayout.findViewById(R.id.playdeck_view));
+			drawDeck = new Deck(dataArr[0], false, (ImageView) gameLayout.findViewById(R.id.drawdeck_view));
+			playDeck = new Deck(dataArr[1], true, (ImageView) gameLayout.findViewById(R.id.playdeck_view));
 
-		int numPlayers = Integer.parseInt(dataArr[2]);
+			int numPlayers = Integer.parseInt(dataArr[2]);
 
-        for (int i = 3; i < 3 + numPlayers*2; i+=2) {
-	        String playerName = dataArr[i];
-	        if (playerName.equals(playerNames.get(currParticipantIndex))) {
-		        currHand = new Hand(dataArr[i+1], handLayout, handClickListener);
-		        hands.put(playerName, currHand);
-	        } else
-		        hands.put(playerName, new Hand(dataArr[i+1]));
-	        if (MainActivity.DEBUG) System.out.println(playerName + " hand: " + hands.get(playerName));
-        }
-		mustPlaySuit = Integer.parseInt(dataArr[3 + numPlayers*2]);
-	}
-
-	@Override
-	public String getGameName() { return getGameName(activity, GameBoard.CRAZY_EIGHTS); }
-
-	@Override
-	public String getNextParticipantId() {
-		return GameBoard.getNextParticipantId(GameBoard.ROUND_ROBIN, participantIds, currParticipantIndex);
+			for (int i = 3; i < 3 + numPlayers * 2; i += 2) {
+				String playerName = dataArr[i];
+				if (playerName.equals(playerNames.get(currParticipantIndex))) {
+					currHand = new Hand(dataArr[i + 1], handLayout, handClickListener);
+					hands.put(playerName, currHand);
+				} else
+					hands.put(playerName, new Hand(dataArr[i + 1]));
+				if (MainActivity.DEBUG)
+					System.out.println(playerName + " hand: " + hands.get(playerName));
+			}
+			mustPlaySuit = Integer.parseInt(dataArr[3 + numPlayers * 2]);
+		} catch (Exception e) {
+			Log.d(MainActivity.TAG, "Loading data error: " + e);
+			mCallbacks.onLoadDataError();
+		}
 	}
 
 	private void activateGUI() {
 
 		// Set game name at top
 		((TextView) activity.findViewById(R.id.game_title)).setText(getGameName());
-
-		// initiate callback object which calls back to GameActivity when turn is ended, cancelled or won
-		try {
-			mCallbacks = (GameCallbacks) activity;
-		} catch (ClassCastException e) {
-			throw new ClassCastException("Activity must implement GameCallbacks.");
-		}
 
 		// logic for when draw deck or play deck is clicked
 		View.OnClickListener gameClickListener = new View.OnClickListener() {
@@ -255,7 +254,7 @@ public class CrazyEightsGameBoard extends GameBoard {
 							public void onClick(DialogInterface dialog, int which) {
 								chosenSuit = which+1;
 								if (MainActivity.DEBUG)
-									System.out.println("CrazyEightsGameBoard|activateGUI(): chose suit " + Card.suitToString(chosenSuit));
+									System.out.println("CrazyEightsGame|activateGUI(): chose suit " + Card.suitToString(chosenSuit));
 							}
 				});
 		chooseSuitDialog = builder.create();
@@ -270,6 +269,7 @@ public class CrazyEightsGameBoard extends GameBoard {
 		overflowMenu.setOnMenuItemClickListener(moreOptionsClickListener);
 
 		// populate opponents
+
 		LinearLayout oppLayout = (LinearLayout) activity.findViewById(R.id.opponent_layout);
 		LayoutInflater layoutInflater = activity.getLayoutInflater();
 
@@ -294,9 +294,11 @@ public class CrazyEightsGameBoard extends GameBoard {
 		else {
 			String suit = activity.getResources().getStringArray(R.array.suits_array)[mustPlaySuit-1];
 			TypedArray imgArray = activity.getResources().obtainTypedArray(R.array.suits_icons_array);
-			hint = getNextPlayerName(GameBoard.ROUND_ROBIN, playerNames, currParticipantIndex) + " "
+			hint = getPrevPlayerName(Game.ROUND_ROBIN, playerNames, currParticipantIndex) + " "
 					+ activity.getString(R.string.gameid_1_8_was_played) + " " + suit + ". "
 					+ activity.getString(R.string.Play);
+
+			// make dialog to display suit chosen by previous if they played an 8 and show it
 
 			View dialogView = activity.getLayoutInflater().inflate(R.layout.crazy_eights_dialog, null);
 			((TextView) dialogView.findViewById(R.id.suit))
@@ -306,7 +308,6 @@ public class CrazyEightsGameBoard extends GameBoard {
 
 			imgArray.recycle();
 
-			// make dialog to display suit chosen by previous if they played an 8 and show it
 			builder = new android.app.AlertDialog.Builder(activity);
 			builder.setView(dialogView)
 					.setMessage(hint)
@@ -348,5 +349,13 @@ public class CrazyEightsGameBoard extends GameBoard {
 			return (card.getSuit() == mustPlaySuit || card.getRank() == 8);
 		}
 		return (card.getSuit() == target.getSuit() || card.getRank() == target.getRank() || card.getRank() == 8);
+	}
+
+	@Override
+	public String getGameName() { return getGameName(activity, Game.CRAZY_EIGHTS); }
+
+	@Override
+	public String getNextParticipantId() {
+		return Game.getNextParticipantId(Game.ROUND_ROBIN, participantIds, currParticipantIndex);
 	}
 }

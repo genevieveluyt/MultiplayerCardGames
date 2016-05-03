@@ -1,6 +1,7 @@
 package com.genevieveluyt.multiplayercardgames;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
 
@@ -11,7 +12,7 @@ import java.util.HashMap;
 /**
  * Created by Genevieve on 03/09/2015.
  */
-public abstract class GameBoard {
+public abstract class Game {
 
 	// Game variants
 	public static final int CRAZY_EIGHTS = 1;
@@ -81,9 +82,9 @@ public abstract class GameBoard {
 		return drawable;
 	}
 
-	public Dialog makeYouWonDialog(Activity activity, final GameCallbacks mCallbacks) {
-		android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(activity);
-		builder.setMessage(R.string.you_won)
+	public AlertDialog makeYouWonDialog(Activity activity, final GameCallbacks mCallbacks) {
+		return (new AlertDialog.Builder(activity))
+				.setMessage(R.string.you_won)
 				.setNeutralButton(R.string.ok, new DialogInterface.OnClickListener() {
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
@@ -95,29 +96,31 @@ public abstract class GameBoard {
 					public void onCancel(DialogInterface dialog) {
 						mCallbacks.onGameWon();
 					}
-				});
-		return builder.create();
+				})
+				.create();
 	}
 
-	public static Dialog makeCancelDialog(Activity activity, final GameCallbacks mCallbacks) {
-		android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(activity);
-		builder.setMessage(R.string.confirm_cancel)
+	public static AlertDialog makeCancelDialog(Activity activity, final GameCallbacks mCallbacks) {
+		return (new AlertDialog.Builder(activity))
+				.setMessage(R.string.confirm_cancel)
 				.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
 						mCallbacks.onGameCancelled();
 					}
 				})
-				.setNegativeButton(R.string.no, null);
-		return builder.create();
+				.setNegativeButton(R.string.no, null)
+				.create();
 	}
 
-	public static interface GameCallbacks {
+	public interface GameCallbacks {
 
 		void onTurnEnded();
 
 		void onGameCancelled();
 
 		void onGameWon();
+
+		void onLoadDataError();
 	}
 }

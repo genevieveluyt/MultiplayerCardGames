@@ -30,8 +30,7 @@
                 android:layout_height="wrap_content"
                 android:layout_centerInParent="true"
                 android:textAppearance="@style/Heading"
-                android:textColor="@color/in_game_title"
-                android:text="Game Name"/>
+                android:textColor="@color/in_game_title" />
 
         </RelativeLayout>
 
@@ -69,7 +68,6 @@
                 android:adjustViewBounds="true"
                 android:scaleType="fitCenter"
                 android:background="@android:color/transparent"
-                android:visibility="visible"
                 android:clickable="true"
                 android:src="@drawable/card_back"
                 />
