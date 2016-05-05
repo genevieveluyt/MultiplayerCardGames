@@ -151,22 +151,27 @@ public class CrazyEightsGame extends Game {
 
 		String dataStr = new String(data, Charset.forName("UTF-8"));
 		String[] dataArr = dataStr.split(String.valueOf(separator));
+		int dataIndex = 0;
 
-		drawDeck = new Deck(dataArr[0], false, (ImageView) gameLayout.findViewById(R.id.drawdeck_view));
-		playDeck = new Deck(dataArr[1], true, (ImageView) gameLayout.findViewById(R.id.playdeck_view));
+		drawDeck = new Deck(dataArr[dataIndex++], false, (ImageView) gameLayout.findViewById(R.id.drawdeck_view));
+		playDeck = new Deck(dataArr[dataIndex++], true, (ImageView) gameLayout.findViewById(R.id.playdeck_view));
 
-		for (int i = 2; i < 2 + numPlayers; i++) {
-			int j = i-2;
-			if (j == currParticipantIndex) {
-				currHand = new Hand(dataArr[i], handLayout, handClickListener);
-				hands[j] = currHand;
+		int handsStartIndex = dataIndex;
+		while (dataIndex < handsStartIndex + numPlayers) {
+			int handsIndex = dataIndex-2;
+			if (handsIndex == currParticipantIndex) {
+				currHand = new Hand(dataArr[dataIndex], handLayout, handClickListener);
+				hands[handsIndex] = currHand;
 			} else
-				hands[j] = new Hand(dataArr[i]);
+				hands[handsIndex] = new Hand(dataArr[dataIndex]);
 
 			if (MainActivity.DEBUG)
-				System.out.println(playerNames.get(j) + " hand: " + hands[j]);
+				System.out.println(playerNames.get(handsIndex) + " hand: " + hands[handsIndex]);
+
+			handsIndex++;
+			dataIndex++;
 		}
-		mustPlaySuit = Integer.parseInt(dataArr[2 + numPlayers]);
+		mustPlaySuit = Integer.parseInt(dataArr[dataIndex++]);
 	}
 
 	private void activateGUI() {
