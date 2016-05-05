@@ -11,6 +11,8 @@
     <string name='match_error_locally_modified'>This match has locally-modified data.  This operation cannot be performed until the match is sent to the server.</string>
     <string name="signin_other_error">There was an issue with sign in. Please try again later.</string>
 
+    <string name="game_not_found">Game Not Found Error</string>
+    <string name="found_bug_msg">Uh-oh, you\'ve found a bug! Please notify the developer.</string>
     <string name="load_data_error">Sorry, there was an error loading this game. You may be using an old version of this app, otherwise whoever started this game may be using an older version of this app in which case they will need to update and recreate the game. Check the Play Store for an update?</string>
     <string name="unknown_game_error">Sorry, there was an error loading this game. Check the Play Store for an update?</string>
 </resources>

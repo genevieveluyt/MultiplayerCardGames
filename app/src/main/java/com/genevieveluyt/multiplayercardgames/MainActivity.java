@@ -335,9 +335,6 @@ public class MainActivity extends Activity
 
 		mMatch = match;
 
-		String playerId = Games.Players.getCurrentPlayerId(mGoogleApiClient);
-		String myParticipantId = mMatch.getParticipantId(playerId);
-
 		ArrayList<String> playerNames = new ArrayList<>();
 		for (String id : mMatch.getParticipantIds())
 			playerNames.add(mMatch.getParticipant(id).getDisplayName());
@@ -346,13 +343,17 @@ public class MainActivity extends Activity
 
 		switch (mMatch.getVariant()) {
 			case Game.CRAZY_EIGHTS:
-				mTurnData = new CrazyEightsGame(mMatch.getParticipants().indexOf(myParticipantId),
-						mMatch.getParticipantIds(), playerNames, this);
-
+				mTurnData = new CrazyEightsGame(playerNames);
 				break;
+			default:
+				BaseGameUtils.showAlert(this, R.string.game_not_found, R.string.found_bug_msg);
 		}
 
 		showSpinner();
+
+		String playerId = Games.Players.getCurrentPlayerId(mGoogleApiClient);
+		String myParticipantId = mMatch.getParticipantId(playerId);
+
 		Games.TurnBasedMultiplayer.takeTurn(mGoogleApiClient, mMatch.getMatchId(),
 				mTurnData.saveData(), myParticipantId).setResultCallback(
 				new ResultCallback<TurnBasedMultiplayer.UpdateMatchResult>() {

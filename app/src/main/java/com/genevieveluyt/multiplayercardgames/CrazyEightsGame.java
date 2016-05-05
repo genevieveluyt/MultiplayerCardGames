@@ -72,19 +72,13 @@ public class CrazyEightsGame extends Game {
 		}
 	};
 
-	public CrazyEightsGame(int currParticipantIndex, ArrayList<String> participantIds, ArrayList<String> playerNames, Activity activity) {
+	// Use to initialize data before the first turn
+	public CrazyEightsGame( ArrayList<String> playerNames) {
 		super();
-		this.currParticipantIndex = currParticipantIndex;
-		this.participantIds = participantIds;
 		this.playerNames = playerNames;
-		this.gameLayout = (LinearLayout) activity.findViewById(R.id.gameplay_layout);
-		this.handLayout = (LinearLayout) activity.findViewById(R.id.hand_layout);
-		this.activity = activity;
-		numPlayers = participantIds.size();
+		numPlayers = playerNames.size();
 		hands = new Hand[numPlayers];
-		hasPlayed = false;
 		chosenSuit = 0;
-		mustPlaySuit = 0;
 
 		initGame();
 	}
@@ -101,7 +95,6 @@ public class CrazyEightsGame extends Game {
 		hands = new Hand[numPlayers];
 		hasPlayed = false;
 		chosenSuit = 0;
-		mustPlaySuit = 0;
 
 		// initiate callback object which calls back to GameActivity when turn is ended, cancelled or won
 		try {
@@ -131,7 +124,7 @@ public class CrazyEightsGame extends Game {
 			if (MainActivity.DEBUG) System.out.println(playerNames.get(i) + " hand: " + hands[i]);
 		}
 
-		playDeck.addVirtual(drawDeck.drawVirtual());
+		playDeck.addVirtual(drawDeck.drawVirtual()); // TODO game shouldn't start with an 8 on the pile
 	}
 
 	/* Data format:
