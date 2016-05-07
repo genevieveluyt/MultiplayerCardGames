@@ -6,14 +6,18 @@ import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.content.res.TypedArray;
 import android.preference.PreferenceManager;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
+import android.widget.TableLayout;
+import android.widget.TableRow;
 import android.widget.TextView;
 
 import java.nio.charset.Charset;
@@ -31,12 +35,14 @@ public class CrazyEightsGame extends Game {
 	Activity activity;
 
     // Layouts
-	LinearLayout gameLayout;
 	LinearLayout handLayout;
 	TextView numCardsView;
 
 	// Game variables
+	int round;
+	int startedRound;
 	Hand[] hands;
+	int[] score;
 	int currParticipantIndex;		// index of current player in participantIds and playerNames
 	ArrayList<String> participantIds;
 	ArrayList<String> playerNames;
@@ -46,6 +52,7 @@ public class CrazyEightsGame extends Game {
 	Deck playDeck;
 	AlertDialog chooseSuitDialog;
 	AlertDialog mustPlaySuitDialog;
+	AlertDialog scoreDialog;
 	PopupMenu overflowMenu;
 	GameCallbacks mCallbacks;
 
@@ -67,8 +74,9 @@ public class CrazyEightsGame extends Game {
 		super();
 		this.playerNames = playerNames;
 		numPlayers = playerNames.size();
-		hands = new Hand[numPlayers];
-		chosenSuit = 0;
+		score = new int[numPlayers];
+		round = 1;
+		startedRound = -1;
 
 		initGame();
 	}
@@ -78,11 +86,11 @@ public class CrazyEightsGame extends Game {
 		this.currParticipantIndex = currParticipantIndex;
 		this.participantIds = participantIds;
 		this.playerNames = playerNames;
-		this.gameLayout = (LinearLayout) activity.findViewById(R.id.gameplay_layout);
 		this.handLayout = (LinearLayout) activity.findViewById(R.id.hand_layout);
 		this.activity = activity;
 		numPlayers = participantIds.size();
 		hands = new Hand[numPlayers];
+		score = new int[numPlayers];
 		hasPlayed = false;
 		chosenSuit = 0;
 
@@ -106,6 +114,10 @@ public class CrazyEightsGame extends Game {
 	@Override
 	public void initGame() {
 		if (MainActivity.DEBUG) System.out.println("CrazyEightsGame|initGame(): Initializing game");
+
+		hands = new Hand[numPlayers];
+		chosenSuit = 0;
+
 		drawDeck = new Deck(Deck.STANDARD);
 		playDeck = new Deck(Deck.EMPTY);
 
@@ -125,20 +137,26 @@ public class CrazyEightsGame extends Game {
 	}
 
 	/* Data format:
-		version | draw deck data | play deck data | chosen suit | hand data
+		version | round number | player who started round | chosen suit | draw deck data | play deck data |  hand data | score data
 	 */
 	@Override
 	public byte[] saveData() {
 		if (MainActivity.DEBUG) System.out.println("CrazyEightsGame|loadData(byte[]): Saving game data");
         StringBuilder dataStr = new StringBuilder();
 		dataStr.append(VERSION).append(separator)
+				.append(round).append(separator)
+				.append(startedRound).append(separator)
+				.append(chosenSuit).append(separator)
 				.append(drawDeck.getData()).append(separator)
         		.append(playDeck.getData()).append(separator);
         for (int i = 0; i < numPlayers; i++) {
             dataStr.append(hands[i].getData())
             		.append(separator);
         }
-		dataStr.append(chosenSuit);
+		for (int i = 0; i < numPlayers; i++) {
+			dataStr.append(score[i])
+					.append(separator);
+		}
 
         return dataStr.toString().getBytes(Charset.forName("UTF-8"));
 	}
@@ -161,28 +179,45 @@ public class CrazyEightsGame extends Game {
 			return;
 		}
 
-		drawDeck = new Deck(dataArr[dataIndex++], false, (ImageView) gameLayout.findViewById(R.id.drawdeck_view));
-		playDeck = new Deck(dataArr[dataIndex++], true, (ImageView) gameLayout.findViewById(R.id.playdeck_view));
+		// load round number
+		round = Integer.parseInt(dataArr[dataIndex++]);
 
-		int handsStartIndex = dataIndex;
-		while (dataIndex < handsStartIndex + numPlayers) {
-			int handsIndex = dataIndex-handsStartIndex;
-			if (handsIndex == currParticipantIndex) {
-				currHand = new Hand(dataArr[dataIndex], handLayout, handClickListener);
-				hands[handsIndex] = currHand;
+		// if a new round started, loads index of player who started it
+		startedRound = Integer.parseInt(dataArr[dataIndex++]);
+
+		// load suit if previous player played an 8
+		mustPlaySuit = Integer.parseInt(dataArr[dataIndex++]);
+
+		// load decks
+		drawDeck = new Deck(dataArr[dataIndex++], false, (ImageView) activity.findViewById(R.id.drawdeck_view));
+		playDeck = new Deck(dataArr[dataIndex++], true, (ImageView) activity.findViewById(R.id.playdeck_view));
+
+		// load players' cards
+		for (int i = 0; i < numPlayers; i++) {
+			if (i == currParticipantIndex) {
+				currHand = new Hand(dataArr[dataIndex++], handLayout, handClickListener);
+				hands[i] = currHand;
 			} else
-				hands[handsIndex] = new Hand(dataArr[dataIndex]);
+				hands[i] = new Hand(dataArr[dataIndex++]);
 
 			if (MainActivity.DEBUG)
-				System.out.println(playerNames.get(handsIndex) + " hand: " + hands[handsIndex]);
-
-			handsIndex++;
-			dataIndex++;
+				System.out.println(playerNames.get(i) + " hand: " + hands[i]);
 		}
-		mustPlaySuit = Integer.parseInt(dataArr[dataIndex]);
+
+		// load scores
+		for (int i = 0; i < numPlayers; i++) {
+			score[i] = Integer.parseInt(dataArr[dataIndex++]);
+		}
 	}
 
 	private void activateGUI() {
+
+		// check if game is won
+		int winner = getWinner();
+		if (currParticipantIndex == winner)
+			showWonScoreDialog();
+		else if (winner != -1)
+			showLostScoreDialog();
 
 		// Set game name at top
 		((TextView) activity.findViewById(R.id.game_title)).setText(getGameName());
@@ -195,15 +230,8 @@ public class CrazyEightsGame extends Game {
 					case R.id.drawdeck_view:
 						currHand.draw(drawDeck);
 						numCardsView.setText(Integer.toString(currHand.size()));
-						if (drawDeck.isEmpty()) { // TODO what if all cards are in players' hands?
-							// if ran out of cards to draw, reshuffle the play deck and use as draw deck
-							Card topCard = playDeck.drawVirtual();
-							drawDeck = playDeck;
-							drawDeck.reshuffle();
-							activity.findViewById(R.id.drawdeck_view).setVisibility(View.VISIBLE);
-							playDeck = new Deck(Deck.EMPTY, true, (ImageView) activity.findViewById(R.id.playdeck_view));
-							playDeck.add(topCard);
-						}
+						if (drawDeck.isEmpty())
+							endRound();
 						break;
 					case R.id.playdeck_view:
 						if (validPlay()) {
@@ -211,7 +239,7 @@ public class CrazyEightsGame extends Game {
 							numCardsView.setText(Integer.toString(currHand.size()));
 							hasPlayed = true;
 							if (currHand.isEmpty()) {
-								Game.showYouWonDialog(activity, mCallbacks);
+								endRound();
 							} else if (playDeck.peek().getRank() == 8) {
 								hint = activity.getString(R.string.gameid_1_you_played_8_hint);
 								chooseSuitDialog.show();
@@ -263,11 +291,33 @@ public class CrazyEightsGame extends Game {
 		};
 
 		// set click listeners for game elements
-		gameLayout.findViewById(R.id.drawdeck_view).setOnClickListener(gameClickListener);
-		gameLayout.findViewById(R.id.playdeck_view).setOnClickListener(gameClickListener);
-		gameLayout.findViewById(R.id.hint_button).setOnClickListener(menuClickListener);
-		gameLayout.findViewById(R.id.end_turn_button).setOnClickListener(menuClickListener);
-		gameLayout.findViewById(R.id.overflow_button).setOnClickListener(menuClickListener);
+		activity.findViewById(R.id.drawdeck_view).setOnClickListener(gameClickListener);
+		activity.findViewById(R.id.playdeck_view).setOnClickListener(gameClickListener);
+		activity.findViewById(R.id.hint_button).setOnClickListener(menuClickListener);
+		activity.findViewById(R.id.end_turn_button).setOnClickListener(menuClickListener);
+		activity.findViewById(R.id.overflow_button).setOnClickListener(menuClickListener);
+
+		// add menu button to view players' scores
+		ImageButton scoreButton = new ImageButton(activity);
+		scoreButton.setImageResource(R.drawable.ic_score);
+		scoreButton.setBackgroundColor(ContextCompat.getColor(activity, android.R.color.transparent));
+		scoreButton.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				scoreDialog.show();
+			}
+		});
+		((LinearLayout) activity.findViewById(R.id.menu_layout)).addView(scoreButton, 1);
+
+		// make dialog to see player scores, show if a new round just started
+		scoreDialog = makeScoreDialog();
+		if (playDeck.size() == 1) {
+			startedRound = currParticipantIndex;
+			scoreDialog.show();
+		} else if (startedRound == currParticipantIndex)
+			startedRound = -1;
+		else if (startedRound >= 0)
+			scoreDialog.show();
 
 		// make dialog to be used for choosing a suit after an 8 is played
 		android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(activity);
@@ -311,7 +361,7 @@ public class CrazyEightsGame extends Game {
 			else
 				hint = activity.getString(R.string.gameid_1_cant_play_hint);
 		else {
-			String suit = activity.getResources().getStringArray(R.array.suits_array)[mustPlaySuit-1];
+			String suit = activity.getResources().getStringArray(R.array.suits_array)[mustPlaySuit - 1];
 			TypedArray imgArray = activity.getResources().obtainTypedArray(R.array.suits_icons_array);
 			hint = getPrevPlayerName(Game.ROUND_ROBIN, playerNames, currParticipantIndex) + " "
 					+ activity.getString(R.string.gameid_1_8_was_played) + " " + suit + ". "
@@ -319,15 +369,15 @@ public class CrazyEightsGame extends Game {
 
 			// make dialog to display suit chosen by previous if they played an 8 and show it
 
-			View dialogView = activity.getLayoutInflater().inflate(R.layout.crazy_eights_dialog, null);
+			View dialogView = activity.getLayoutInflater().inflate(R.layout.crazy_eights_suit_dialog, null);
 			((TextView) dialogView.findViewById(R.id.suit))
 					.setText(suit);
 			((ImageView) dialogView.findViewById(R.id.suit_image))
-					.setImageResource(imgArray.getResourceId(mustPlaySuit-1, 0));
+					.setImageResource(imgArray.getResourceId(mustPlaySuit - 1, 0));
 
 			imgArray.recycle();
 
-			builder = new android.app.AlertDialog.Builder(activity);
+			builder = new AlertDialog.Builder(activity);
 			builder.setView(dialogView)
 					.setMessage(hint)
 					.setNegativeButton(R.string.game_rules, new DialogInterface.OnClickListener() {
@@ -340,15 +390,115 @@ public class CrazyEightsGame extends Game {
 
 			mustPlaySuitDialog = builder.create();
 			mustPlaySuitDialog.show();
+		}
 
-			// If user has never played this game before, show game rules
-			SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(activity);
-			boolean learnedCrazyEights = sp.getBoolean(Game.PREF_GAME_LEARNED[Game.CRAZY_EIGHTS], false);
-			if (!learnedCrazyEights) {
-				sp.edit().putBoolean(Game.PREF_GAME_LEARNED[Game.CRAZY_EIGHTS], true).apply();
-				showGameRulesDialog(activity, Game.CRAZY_EIGHTS);
+		// If user has never played this game before, show game rules
+		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(activity);
+		boolean learnedCrazyEights = sp.getBoolean(Game.PREF_GAME_LEARNED[Game.CRAZY_EIGHTS], false);
+		if (!learnedCrazyEights) {
+			sp.edit().putBoolean(Game.PREF_GAME_LEARNED[Game.CRAZY_EIGHTS], true).apply();
+			showGameRulesDialog(activity, Game.CRAZY_EIGHTS);
+		}
+	}
+
+	private void endRound() {
+		int roundScore = 0;
+
+		if (currHand.isEmpty()) {
+			for (int i = 0; i < numPlayers; i++) {
+				roundScore += getPayment(i);
+			}
+			score[currParticipantIndex] += roundScore;
+		} else {
+			int playerLeastPoints = getPlayerWithLeastPoints();
+			int leastPoints = getPayment(playerLeastPoints);
+			for (int i = 0; i < numPlayers; i++) {
+				if (i == playerLeastPoints)
+					continue;
+				else
+					roundScore += (getPayment(i) - leastPoints);
+			}
+			score[playerLeastPoints] += roundScore;
+		}
+
+		// check if game is won by anyone
+		int winner = getWinner();
+		if (currParticipantIndex == winner) {
+			showWonScoreDialog();
+			return;
+		} else if (winner != -1) {    // someone else has won
+			showLostScoreDialog();
+			return;
+		}
+
+		// if game not won, start new round
+		round++;
+		scoreDialog = makeScoreDialog();
+		scoreDialog.show();
+
+		startedRound = currParticipantIndex;
+
+		handLayout.removeAllViews();
+		hasPlayed = false;
+
+		initGame();
+		loadData(saveData());
+
+		// update opponent views
+		LinearLayout oppLayout = (LinearLayout) activity.findViewById(R.id.opponent_layout);
+		for (int i = 0; i < numPlayers; i++)
+			((TextView) oppLayout.getChildAt(i).findViewById(R.id.txt_numCards))
+					.setText(Integer.toString(hands[i].size()));
+
+		// set hint
+		if (canPlay())
+			hint = activity.getString(R.string.gameid_1_can_play_hint);
+		else
+			hint = activity.getString(R.string.gameid_1_cant_play_hint);
+	}
+
+	private int getPayment(int player) {
+		int sum = 0;
+		for (Card card : hands[player]) {
+			if (card.getRank() == 8)
+				sum += 50;
+			else if (card.getRank() > 10 || card.getRank() == Card.ACE)
+				sum += 10;
+			else
+				sum += card.getRank();
+		}
+		return sum;
+	}
+
+	private int getPlayerWithLeastPoints() {
+		int lowestPayment = getPayment(0);
+		int player = 0;
+		for (int i = 1; i < numPlayers; i++) {
+			int payment = getPayment(i);
+			if (payment < lowestPayment) {
+				lowestPayment = payment;
+				player = i;
 			}
 		}
+		return player;
+	}
+
+	// returns index of winning player or -1 if no one has won
+	private int getWinner() {
+		int highestScore = score[0];
+		int player = 0;
+
+		for (int i = 1; i < numPlayers; i++) {
+			if (score[i] > highestScore) {
+				highestScore = score[i];
+				player = i;
+			}
+		}
+
+		if (highestScore >= numPlayers*50)
+			return player;
+
+		return -1;
 	}
 
 	// Returns true if there is a valid play without drawing
@@ -384,11 +534,124 @@ public class CrazyEightsGame extends Game {
 		return (card.getSuit() == target.getSuit() || card.getRank() == target.getRank() || card.getRank() == 8);
 	}
 
+	private AlertDialog makeScoreDialog() {
+		LayoutInflater inflater = activity.getLayoutInflater();
+		View dialogView = inflater.inflate(R.layout.crazy_eights_score_dialog, null);
+		TableLayout table = (TableLayout) dialogView.findViewById(R.id.crazy_eights_score_dialog);
+
+		TableRow row;
+		for (int i = currParticipantIndex; i < currParticipantIndex + numPlayers; i++) {
+			row = (TableRow) inflater.inflate(R.layout.crazy_eights_score_row, table, false);
+			((TextView) row.findViewById(R.id.name)).setText(playerNames.get(i%numPlayers));
+			((TextView) row.findViewById(R.id.score)).setText(Integer.toString(score[i%numPlayers]));
+			table.addView(row);
+		}
+
+		AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+
+		builder.setView(dialogView)
+				.setTitle(activity.getString(R.string.round) + " " + Integer.toString(round))
+				.setNeutralButton(R.string.ok, null);
+
+		return builder.create();
+	}
+
+	private void showWonScoreDialog() {
+		LayoutInflater inflater = activity.getLayoutInflater();
+		View dialogView = inflater.inflate(R.layout.crazy_eights_score_dialog, null);
+		TableLayout table = (TableLayout) dialogView.findViewById(R.id.crazy_eights_score_dialog);
+
+		TableRow row;
+		for (int i = currParticipantIndex; i < currParticipantIndex + numPlayers; i++) {
+			row = (TableRow) inflater.inflate(R.layout.crazy_eights_score_row, table, false);
+			((TextView) row.findViewById(R.id.name)).setText(playerNames.get(i%numPlayers));
+			((TextView) row.findViewById(R.id.score)).setText(Integer.toString(score[i%numPlayers]));
+			table.addView(row);
+		}
+
+		AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+		builder.setView(dialogView)
+				.setTitle(R.string.you_won)
+				.setNeutralButton(R.string.ok, new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						dialog.cancel();
+					}
+				})
+				.setOnCancelListener(new DialogInterface.OnCancelListener() {
+					@Override
+					public void onCancel(DialogInterface dialog) {
+						mCallbacks.onGameWon();
+					}
+				}).show();
+	}
+
+	private void showLostScoreDialog() {
+		LayoutInflater inflater = activity.getLayoutInflater();
+		View dialogView = inflater.inflate(R.layout.crazy_eights_score_dialog, null);
+		TableLayout table = (TableLayout) dialogView.findViewById(R.id.crazy_eights_score_dialog);
+
+		TableRow row;
+		for (int i = currParticipantIndex; i < currParticipantIndex + numPlayers; i++) {
+			row = (TableRow) inflater.inflate(R.layout.crazy_eights_score_row, table, false);
+			((TextView) row.findViewById(R.id.name)).setText(playerNames.get(i%numPlayers));
+			((TextView) row.findViewById(R.id.score)).setText(Integer.toString(score[i%numPlayers]));
+			table.addView(row);
+		}
+
+		AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+
+		builder.setView(dialogView)
+				.setTitle(R.string.you_lost)
+				.setNeutralButton(R.string.ok, new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						dialog.cancel();
+					}
+				})
+				.setOnCancelListener(new DialogInterface.OnCancelListener() {
+					@Override
+					public void onCancel(DialogInterface dialog) {
+						mCallbacks.onTurnEnded();
+					}
+				}).show();
+	}
+
 	@Override
 	public String getGameName() { return getGameName(activity, Game.CRAZY_EIGHTS); }
 
 	@Override
 	public String getNextParticipantId() {
 		return Game.getNextParticipantId(Game.ROUND_ROBIN, participantIds, currParticipantIndex);
+	}
+
+	public static void showMatchResultsDialog(Activity activity, byte[] data, ArrayList<String> playerNames) {
+		String dataStr = new String(data, Charset.forName("UTF-8"));
+		String[] dataArr = dataStr.split(String.valueOf(separator));
+
+		int numPlayers = playerNames.size();
+		int[] score = new int[numPlayers];
+		for (int i = 0; i < numPlayers; i++) {
+			score[i] = Integer.parseInt(dataArr[6 + numPlayers + i]);
+		}
+
+		LayoutInflater inflater = activity.getLayoutInflater();
+		View dialogView = inflater.inflate(R.layout.crazy_eights_score_dialog, null);
+		TableLayout table = (TableLayout) dialogView.findViewById(R.id.crazy_eights_score_dialog);
+
+		TableRow row;
+		for (int i = 0; i < numPlayers; i++) {
+			row = (TableRow) inflater.inflate(R.layout.crazy_eights_score_row, table, false);
+			((TextView) row.findViewById(R.id.name)).setText(playerNames.get(i));
+			((TextView) row.findViewById(R.id.score)).setText(Integer.toString(score[i]));
+			table.addView(row);
+		}
+
+		AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+
+		builder.setView(dialogView)
+				.setTitle(getGameName(activity, CRAZY_EIGHTS))
+				.setNeutralButton(R.string.ok, null)
+				.show();
 	}
 }

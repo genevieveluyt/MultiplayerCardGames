@@ -381,6 +381,8 @@ public class MainActivity extends Activity
 	// This is the main function that gets called when players choose a match
 	// from the inbox, or else create a match and want to start it.
 	public void updateMatch(TurnBasedMatch match) {
+		updateMenuUI();
+
 		mMatch = match;
 
 		int status = match.getStatus();
@@ -398,8 +400,20 @@ public class MainActivity extends Activity
 						"We're still waiting for an automatch partner.");
 				return;
 			case TurnBasedMatch.MATCH_STATUS_COMPLETE:
-				BaseGameUtils.showAlert(this, "Complete!",
-						"This game is over");
+
+				ArrayList<String> playerNames = new ArrayList<>();
+				for (String id : match.getParticipantIds())
+					playerNames.add(match.getParticipant(id).getDisplayName());
+
+				switch (match.getVariant()) {
+					case Game.CRAZY_EIGHTS:
+						CrazyEightsGame.showMatchResultsDialog(this, match.getData(), playerNames);
+						break;
+					default:
+						BaseGameUtils.showAlert(this, "Complete!",
+								"This game is over");
+				}
+
 				return;
 		}
 

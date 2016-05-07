@@ -21,8 +21,21 @@
         If an 8 is played, a suit is chosen which the next player must play. An 8 is always a valid play.<br><br>
         If there is no valid play, cards are drawn until a valid play becomes available.<br><br>
         Cards may be drawn at any time, even if a valid play is available.
+        <h4>Rounds</h4>
+        A round ends when a player empties their hand or the deck runs out of cards. At the end of each round, points are awarded to the player with the least cards.<br><br>
+        If a player empties their hand, they collect a payment from each opponent equal to the point score of the cards in that opponent\'s hand. If the deck runs out of cards, the player with the lowest point score in their hand scores the difference between that hand and each opponent\'s hand.<br><br>
+        Points are awarded as follows:<br>
+        8\'s: 50<br>
+        Court cards: 10<br>
+        Other cards: face value
         <h4>Winning</h4>
-        The first player to empty their hand wins!
+        The winner of the game is the first player to reach a specific amount of points, in this case 50 times the number of players.<br>
+        For example:<br>
+        2 players: 100 pts<br>
+        3 Players: 150 pts<br>
+        4 players: 200 pts<br>
+        etc.<br><br><br>
+        Rules taken from Wikipedia.
         ]]>
     </string>
     <string name="coming_soon_info">More games coming soon!</string>

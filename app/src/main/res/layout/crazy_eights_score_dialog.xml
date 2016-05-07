@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/crazy_eights_score_dialog"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingBottom="@dimen/margin_medium"
+    android:stretchColumns="0">
+
+    <TableRow>
+        <TextView
+            android:id="@+id/title"
+            android:padding="@dimen/margin_medium"
+            android:textAppearance="@style/SubHeading"
+            android:text="@string/player_name"/>
+
+        <TextView
+            android:padding="@dimen/margin_medium"
+            android:gravity="right"
+            android:textAppearance="@style/SubHeading"
+            android:text="@string/score"/>
+    </TableRow>
+
+</TableLayout>
