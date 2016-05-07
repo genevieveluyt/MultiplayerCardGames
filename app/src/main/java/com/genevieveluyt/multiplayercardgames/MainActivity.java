@@ -318,10 +318,26 @@ public class MainActivity extends Activity
 						});
 				break;
 			case GameActivity.UNKNOWN_GAME_ERROR:
-				showUnknownGameErrorDialog();
+				showCheckPlayStoreDialog(R.string.unknown_game_title, R.string.unknown_game_msg);
+				break;
+			case GameActivity.NEWER_VERSION_ERROR:
+				BaseGameUtils.showAlert(this, R.string.incompatible_version, R.string.new_version);
+				Games.TurnBasedMultiplayer.cancelMatch(mGoogleApiClient, mMatch.getMatchId())
+						.setResultCallback(new ResultCallback<TurnBasedMultiplayer.CancelMatchResult>() {
+							@Override
+							public void onResult(TurnBasedMultiplayer.CancelMatchResult result) {
+								processResult(result);
+							}
+						});
+				break;
+			case GameActivity.OLDER_VERSION_ERROR:
+				showCheckPlayStoreDialog(R.string.incompatible_version, R.string.old_version);
 				break;
 			case GameActivity.LOAD_DATA_ERROR:
-				showLoadErrorDialog();
+				BaseGameUtils.showAlert(this, R.string.load_data_error, R.string.found_bug);
+				break;
+
+			// TODO test errors
 		}
 	}
 
@@ -346,7 +362,7 @@ public class MainActivity extends Activity
 				mTurnData = new CrazyEightsGame(playerNames);
 				break;
 			default:
-				BaseGameUtils.showAlert(this, R.string.game_not_found, R.string.found_bug_msg);
+				BaseGameUtils.showAlert(this, R.string.game_not_found_error, R.string.found_bug);
 		}
 
 		showSpinner();
@@ -548,22 +564,10 @@ public class MainActivity extends Activity
 		BaseGameUtils.showAlert(this, R.string.warning, stringId);
 	}
 
-	public void showLoadErrorDialog() {
+	public void showCheckPlayStoreDialog(int titleId, int messageId) {
 		(new AlertDialog.Builder(this))
-				.setMessage(R.string.load_data_error)
-				.setNegativeButton(R.string.no, null)
-				.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
-					@Override
-					public void onClick(DialogInterface dialog, int which) {
-						startActivity(getPlayStoreIntent());
-					}
-				})
-				.show();
-	}
-
-	public void showUnknownGameErrorDialog() {
-		(new AlertDialog.Builder(this))
-				.setMessage(R.string.unknown_game_error)
+				.setTitle(titleId)
+				.setMessage(messageId)
 				.setNegativeButton(R.string.no, null)
 				.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
 					@Override

@@ -22,7 +22,9 @@ public class GameActivity extends Activity
     public static final int GAME_WON = 102;
     public static final int CANCEL = 103;
     public static final int LOAD_DATA_ERROR = 104;
-    public static final int UNKNOWN_GAME_ERROR = 105;
+    public static final int NEWER_VERSION_ERROR = 105;
+    public static final int OLDER_VERSION_ERROR = 106;
+    public static final int UNKNOWN_GAME_ERROR = 107;
 
     public Game mTurnData;
 
@@ -80,10 +82,10 @@ public class GameActivity extends Activity
     }
 
     // An exception occurred when trying to load the game data. Likely, players in the game have
-    // incompatible version of the app
+    // incompatible versions of the app
     @Override
-    public void onLoadDataError() {
-        setResult(RESULT_OK, (new Intent()).putExtra(EXTRA_ACTION, LOAD_DATA_ERROR));
+    public void onLoadError(int errorCode) {
+        setResult(RESULT_OK, (new Intent()).putExtra(EXTRA_ACTION, errorCode));
         finish();
     }
 }

@@ -149,6 +149,6 @@ public abstract class Game {
 
 		void onGameWon();
 
-		void onLoadDataError();
+		void onLoadError(int errorCode);
 	}
 }

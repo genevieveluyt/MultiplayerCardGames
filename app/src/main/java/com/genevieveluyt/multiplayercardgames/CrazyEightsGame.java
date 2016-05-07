@@ -18,25 +18,15 @@ import android.widget.TextView;
 
 import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.HashMap;
 
 /**
  * Created by Genevieve on 03/09/2015.
- *
- * Crazy Eights Rules
- *
- * Goal: Get rid of all your cards
- * Basic Gameplay: Play a single card with the same rank or suit as the pile or an 8. If the player
- * has no such card, draw cards until they do. A player can choose to draw cards even if they
- * have valid cards in their hand
- *
- * Special cards:
- * 8	-	declare a suit which the next player must play (or another 8)
- *
  */
 public class CrazyEightsGame extends Game {
 
 	private static final int STARTING_HAND = 8;
+	// increase this if changes make it incompatible with a previous version of the game
+	public static final int VERSION = 1;
 
 	Activity activity;
 
@@ -46,7 +36,7 @@ public class CrazyEightsGame extends Game {
 	TextView numCardsView;
 
 	// Game variables
-	Hand[] hands;    // Player ID, Hand of cards
+	Hand[] hands;
 	int currParticipantIndex;		// index of current player in participantIds and playerNames
 	ArrayList<String> participantIds;
 	ArrayList<String> playerNames;
@@ -109,7 +99,7 @@ public class CrazyEightsGame extends Game {
 		}
 		 catch (Exception e) {
 			Log.d(MainActivity.TAG, "Loading data error: " + e);
-			mCallbacks.onLoadDataError();
+			mCallbacks.onLoadError(GameActivity.LOAD_DATA_ERROR);
 		}
 	}
 
@@ -128,17 +118,18 @@ public class CrazyEightsGame extends Game {
 	}
 
 	/* Data format:
-		draw deck data | play deck data | chosen suit | hand data
+		version | draw deck data | play deck data | chosen suit | hand data
 	 */
 	@Override
 	public byte[] saveData() {
 		if (MainActivity.DEBUG) System.out.println("CrazyEightsGame|loadData(byte[]): Saving game data");
         StringBuilder dataStr = new StringBuilder();
-		dataStr.append(drawDeck.getData()).append(separator)
-        .append(playDeck.getData()).append(separator);
+		dataStr.append(VERSION).append(separator)
+				.append(drawDeck.getData()).append(separator)
+        		.append(playDeck.getData()).append(separator);
         for (int i = 0; i < numPlayers; i++) {
             dataStr.append(hands[i].getData())
-            .append(separator);
+            		.append(separator);
         }
 		dataStr.append(chosenSuit);
 
@@ -153,12 +144,22 @@ public class CrazyEightsGame extends Game {
 		String[] dataArr = dataStr.split(String.valueOf(separator));
 		int dataIndex = 0;
 
+		// check if game versions between players are compatible
+		int gameVersion = Integer.parseInt(dataArr[dataIndex++]);
+		if (VERSION != gameVersion) {
+			if (VERSION > gameVersion) // user has newer version
+				mCallbacks.onLoadError(GameActivity.NEWER_VERSION_ERROR);
+			else if (VERSION < gameVersion) // user has older version
+				mCallbacks.onLoadError(GameActivity.OLDER_VERSION_ERROR);
+			return;
+		}
+
 		drawDeck = new Deck(dataArr[dataIndex++], false, (ImageView) gameLayout.findViewById(R.id.drawdeck_view));
 		playDeck = new Deck(dataArr[dataIndex++], true, (ImageView) gameLayout.findViewById(R.id.playdeck_view));
 
 		int handsStartIndex = dataIndex;
 		while (dataIndex < handsStartIndex + numPlayers) {
-			int handsIndex = dataIndex-2;
+			int handsIndex = dataIndex-handsStartIndex;
 			if (handsIndex == currParticipantIndex) {
 				currHand = new Hand(dataArr[dataIndex], handLayout, handClickListener);
 				hands[handsIndex] = currHand;
@@ -171,7 +172,7 @@ public class CrazyEightsGame extends Game {
 			handsIndex++;
 			dataIndex++;
 		}
-		mustPlaySuit = Integer.parseInt(dataArr[dataIndex++]);
+		mustPlaySuit = Integer.parseInt(dataArr[dataIndex]);
 	}
 
 	private void activateGUI() {
