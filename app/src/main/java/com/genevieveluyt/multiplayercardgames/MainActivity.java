@@ -336,8 +336,6 @@ public class MainActivity extends Activity
 			case GameActivity.LOAD_DATA_ERROR:
 				BaseGameUtils.showAlert(this, R.string.load_data_error, R.string.found_bug);
 				break;
-
-			// TODO test errors
 		}
 	}
 

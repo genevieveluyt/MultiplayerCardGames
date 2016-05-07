@@ -114,7 +114,14 @@ public class CrazyEightsGame extends Game {
 			if (MainActivity.DEBUG) System.out.println(playerNames.get(i) + " hand: " + hands[i]);
 		}
 
-		playDeck.addVirtual(drawDeck.drawVirtual()); // TODO game shouldn't start with an 8 on the pile
+		// make sure starting card is not an 8
+		Card topCard = drawDeck.drawVirtual();
+		while (topCard.getRank() == 8) {
+			drawDeck.addBottomVirtual(topCard);
+			topCard = drawDeck.drawVirtual();
+		}
+
+		playDeck.addVirtual(topCard);
 	}
 
 	/* Data format:

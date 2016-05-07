@@ -133,6 +133,12 @@ public class Deck {
 		deck.addFirst(card);
 	}
 
+	// Add card to bottom of deck without affecting UI
+	public void addBottomVirtual(Card card) {
+		deck.addLast(card);
+		if (MainActivity.DEBUG) { System.out.println("Deck|addBottomVirtual(Card): putting " + card + " on bottom of deck"); }
+	}
+
 	public boolean isEmpty() {
 		return deck.isEmpty();
 	}
