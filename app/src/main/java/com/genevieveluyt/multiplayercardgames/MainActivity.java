@@ -300,13 +300,15 @@ public class MainActivity extends Activity
 						});
 				break;
 			case GameActivity.GAME_WON:
-				Games.TurnBasedMultiplayer.finishMatch(mGoogleApiClient, mMatch.getMatchId())
+				Games.TurnBasedMultiplayer.finishMatch(mGoogleApiClient, mMatch.getMatchId(),
+						data.getByteArrayExtra(GameActivity.EXTRA_DATA))
 						.setResultCallback(new ResultCallback<TurnBasedMultiplayer.UpdateMatchResult>() {
 							@Override
 							public void onResult(TurnBasedMultiplayer.UpdateMatchResult result) {
 								processResult(result);
 							}
 						});
+
 				break;
 			case GameActivity.CANCEL:
 				Games.TurnBasedMultiplayer.cancelMatch(mGoogleApiClient, mMatch.getMatchId())
@@ -400,19 +402,26 @@ public class MainActivity extends Activity
 						"We're still waiting for an automatch partner.");
 				return;
 			case TurnBasedMatch.MATCH_STATUS_COMPLETE:
+				if (match.getData() != null) {
+					String playerId = Games.Players.getCurrentPlayerId(mGoogleApiClient);
+					String myParticipantId = match.getParticipantId(playerId);
 
-				ArrayList<String> playerNames = new ArrayList<>();
-				for (String id : match.getParticipantIds())
-					playerNames.add(match.getParticipant(id).getDisplayName());
+					ArrayList<String> playerNames = new ArrayList<>();
+					for (String id : match.getParticipantIds())
+						playerNames.add(match.getParticipant(id).getDisplayName());
+					int participantIndex = match.getParticipantIds().indexOf(myParticipantId);
 
-				switch (match.getVariant()) {
-					case Game.CRAZY_EIGHTS:
-						CrazyEightsGame.showMatchResultsDialog(this, match.getData(), playerNames);
-						break;
-					default:
-						BaseGameUtils.showAlert(this, "Complete!",
-								"This game is over");
-				}
+					switch (match.getVariant()) {
+						case Game.CRAZY_EIGHTS:
+							CrazyEightsGame.showMatchResultsDialog(this, match.getData(), playerNames, participantIndex);
+							break;
+						default:
+							BaseGameUtils.showAlert(this, "Complete!",
+									"This game is over");
+					}
+				} else
+					BaseGameUtils.showAlert(this, "Complete!",
+							"This game is over");
 
 				return;
 		}

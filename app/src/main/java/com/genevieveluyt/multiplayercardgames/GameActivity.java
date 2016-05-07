@@ -77,7 +77,14 @@ public class GameActivity extends Activity
 
     @Override
     public void onGameWon() {
-        setResult(Activity.RESULT_OK, (new Intent()).putExtra(EXTRA_ACTION, GAME_WON));
+        CrazyEightsGame game = (CrazyEightsGame) mTurnData;
+
+        Intent intent = new Intent();
+        intent.putExtra(EXTRA_ACTION, GAME_WON)
+                .putExtra(EXTRA_DATA, game.saveData());
+
+        setResult(Activity.RESULT_OK, (intent));
+
         finish();
     }
 

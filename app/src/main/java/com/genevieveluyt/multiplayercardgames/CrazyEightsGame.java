@@ -212,13 +212,6 @@ public class CrazyEightsGame extends Game {
 
 	private void activateGUI() {
 
-		// check if game is won
-		int winner = getWinner();
-		if (currParticipantIndex == winner)
-			showWonScoreDialog();
-		else if (winner != -1)
-			showLostScoreDialog();
-
 		// Set game name at top
 		((TextView) activity.findViewById(R.id.game_title)).setText(getGameName());
 
@@ -557,6 +550,14 @@ public class CrazyEightsGame extends Game {
 	}
 
 	private void showWonScoreDialog() {
+		showEndGameDialog(R.string.you_won);
+	}
+
+	private void showLostScoreDialog() {
+		showEndGameDialog(R.string.you_lost);
+	}
+
+	private void showEndGameDialog(int titleId) {
 		LayoutInflater inflater = activity.getLayoutInflater();
 		View dialogView = inflater.inflate(R.layout.crazy_eights_score_dialog, null);
 		TableLayout table = (TableLayout) dialogView.findViewById(R.id.crazy_eights_score_dialog);
@@ -570,8 +571,9 @@ public class CrazyEightsGame extends Game {
 		}
 
 		AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+
 		builder.setView(dialogView)
-				.setTitle(R.string.you_won)
+				.setTitle(titleId)
 				.setNeutralButton(R.string.ok, new DialogInterface.OnClickListener() {
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
@@ -586,37 +588,6 @@ public class CrazyEightsGame extends Game {
 				}).show();
 	}
 
-	private void showLostScoreDialog() {
-		LayoutInflater inflater = activity.getLayoutInflater();
-		View dialogView = inflater.inflate(R.layout.crazy_eights_score_dialog, null);
-		TableLayout table = (TableLayout) dialogView.findViewById(R.id.crazy_eights_score_dialog);
-
-		TableRow row;
-		for (int i = currParticipantIndex; i < currParticipantIndex + numPlayers; i++) {
-			row = (TableRow) inflater.inflate(R.layout.crazy_eights_score_row, table, false);
-			((TextView) row.findViewById(R.id.name)).setText(playerNames.get(i%numPlayers));
-			((TextView) row.findViewById(R.id.score)).setText(Integer.toString(score[i%numPlayers]));
-			table.addView(row);
-		}
-
-		AlertDialog.Builder builder = new AlertDialog.Builder(activity);
-
-		builder.setView(dialogView)
-				.setTitle(R.string.you_lost)
-				.setNeutralButton(R.string.ok, new DialogInterface.OnClickListener() {
-					@Override
-					public void onClick(DialogInterface dialog, int which) {
-						dialog.cancel();
-					}
-				})
-				.setOnCancelListener(new DialogInterface.OnCancelListener() {
-					@Override
-					public void onCancel(DialogInterface dialog) {
-						mCallbacks.onTurnEnded();
-					}
-				}).show();
-	}
-
 	@Override
 	public String getGameName() { return getGameName(activity, Game.CRAZY_EIGHTS); }
 
@@ -625,7 +596,7 @@ public class CrazyEightsGame extends Game {
 		return Game.getNextParticipantId(Game.ROUND_ROBIN, participantIds, currParticipantIndex);
 	}
 
-	public static void showMatchResultsDialog(Activity activity, byte[] data, ArrayList<String> playerNames) {
+	public static void showMatchResultsDialog(Activity activity, byte[] data, ArrayList<String> playerNames, int participantIndex) {
 		String dataStr = new String(data, Charset.forName("UTF-8"));
 		String[] dataArr = dataStr.split(String.valueOf(separator));
 
@@ -635,23 +606,37 @@ public class CrazyEightsGame extends Game {
 			score[i] = Integer.parseInt(dataArr[6 + numPlayers + i]);
 		}
 
+		int highestScore = score[0];
+		int winner = 0;
+
+		for (int i = 1; i < numPlayers; i++) {
+			if (score[i] > highestScore) {
+				highestScore = score[i];
+				winner = i;
+			}
+		}
+
 		LayoutInflater inflater = activity.getLayoutInflater();
 		View dialogView = inflater.inflate(R.layout.crazy_eights_score_dialog, null);
 		TableLayout table = (TableLayout) dialogView.findViewById(R.id.crazy_eights_score_dialog);
 
 		TableRow row;
-		for (int i = 0; i < numPlayers; i++) {
+		for (int i = participantIndex; i < participantIndex + numPlayers; i++) {
 			row = (TableRow) inflater.inflate(R.layout.crazy_eights_score_row, table, false);
-			((TextView) row.findViewById(R.id.name)).setText(playerNames.get(i));
-			((TextView) row.findViewById(R.id.score)).setText(Integer.toString(score[i]));
+			((TextView) row.findViewById(R.id.name)).setText(playerNames.get(i%numPlayers));
+			((TextView) row.findViewById(R.id.score)).setText(Integer.toString(score[i%numPlayers]));
 			table.addView(row);
 		}
 
 		AlertDialog.Builder builder = new AlertDialog.Builder(activity);
 
-		builder.setView(dialogView)
-				.setTitle(getGameName(activity, CRAZY_EIGHTS))
-				.setNeutralButton(R.string.ok, null)
+		builder.setView(dialogView);
+		if (participantIndex == winner)
+			builder.setTitle(R.string.you_won);
+		else
+			builder.setTitle(R.string.you_lost);
+
+		builder.setNeutralButton(R.string.ok, null)
 				.show();
 	}
 }
